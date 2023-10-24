@@ -14,10 +14,9 @@ from yolov8_pose_utils import *
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-from tf2_geometry_msgs import do_transform_pose
-from geometry_msgs.msg import Pose, TransformStamped, Point32
+from geometry_msgs.msg import TransformStamped, Point32
 
-from tf2_ros import TransformBroadcaster, TransformException
+from tf2_ros import TransformBroadcaster
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 

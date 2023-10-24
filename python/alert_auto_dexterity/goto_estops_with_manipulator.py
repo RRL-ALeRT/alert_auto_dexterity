@@ -11,7 +11,7 @@ import numpy as np
 import math
 import threading
 
-from alert_auto_dexterity.action import ManipulatorManipulator
+from alert_auto_dexterity.action import ManipulatorManipulation
 
 from moveit_ik import MoveitIKClientAsync as IK
 from moveit_action_client import MoveGroupActionClient as Moveit
@@ -78,7 +78,7 @@ class SeeObject(Node):
         self._goal_lock = threading.Lock()
         self._action_server = ActionServer(
             self,
-            ManipulatorManipulator,
+            ManipulatorManipulation,
             'goto_estops_with_manipulator',
             execute_callback=self.execute_callback,
             goal_callback=self.goal_callback,
@@ -118,12 +118,12 @@ class SeeObject(Node):
         while rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulator.Result()
+                return ManipulatorManipulation.Result()
 
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().info('Goal canceled')
-                return ManipulatorManipulator.Result()
+                return ManipulatorManipulation.Result()
 
             if self.position is None:
                 self.get_tf("base_link", "tool_target")
@@ -138,7 +138,7 @@ class SeeObject(Node):
             za = self.position.rotation.z
             wa = self.position.rotation.w
 
-            feedback_msg = ManipulatorManipulator.Feedback()
+            feedback_msg = ManipulatorManipulation.Feedback()
             feedback_msg.end_effector_target.translation.x = x
             feedback_msg.end_effector_target.translation.y = y
             feedback_msg.end_effector_target.translation.z = z
@@ -151,14 +151,14 @@ class SeeObject(Node):
             manipulator_actuated = moveit_motion(x, y, z, xa, ya, za, wa)
             if not manipulator_actuated:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulator.Result()
+                return ManipulatorManipulation.Result()
 
             break
 
         goal_handle.succeed()
 
         # Populate result message
-        result = ManipulatorManipulator.Result()
+        result = ManipulatorManipulation.Result()
 
         return result
 
