@@ -1,0 +1,6 @@
+# The target to reach
+string location
+---
+---
+# Target location wrt base_link
+geometry_msgs/Transform end_effector_target

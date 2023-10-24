@@ -1,0 +1,8 @@
+# The target to reach
+string location
+---
+---
+# The error wrt target
+float32 error_x
+float32 error_y
+float32 error_angle
