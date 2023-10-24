@@ -65,11 +65,12 @@ label_map = ["estop"]
 
 class LifecyclePoseNode(LifecycleNode):
     def __init__(self, node_name, **kwargs):
+        super().__init__(node_name, **kwargs)
+
         self.bounding_box_pub = None
         self.keypoints_pub = None
         self.tf2_publish_timer = None
-
-        super().__init__(node_name, **kwargs)
+        self.trigger_configure()
 
     def on_configure(self, state: LifecycleState):
         self.bounding_box_pub = self.create_lifecycle_publisher(BoundingBoxArray, IMAGE_TOPIC + '/bb', 1)
@@ -270,7 +271,7 @@ def main():
     rclpy.init()
 
     executor = rclpy.executors.SingleThreadedExecutor()
-    lc_node = LifecyclePoseNode('pose_finder')
+    lc_node = LifecyclePoseNode('single_pose_finder')
     executor.add_node(lc_node)
     try:
         executor.spin()

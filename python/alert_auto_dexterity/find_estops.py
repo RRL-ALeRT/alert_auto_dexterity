@@ -64,11 +64,13 @@ label_map = ["estop_set"]
 
 class LifecyclePoseNode(LifecycleNode):
     def __init__(self, node_name, **kwargs):
+        super().__init__(node_name, **kwargs)
+
         self.bounding_box_pub = None
         self.keypoints_pub = None
         self.tf2_publish_timer = None
 
-        super().__init__(node_name, **kwargs)
+        self.trigger_configure()
 
     def on_configure(self, state: LifecycleState):
         self.bounding_box_pub = self.create_lifecycle_publisher(BoundingBoxArray, IMAGE_TOPIC + '/bb', 1)
