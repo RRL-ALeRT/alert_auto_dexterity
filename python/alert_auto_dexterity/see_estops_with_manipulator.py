@@ -94,7 +94,7 @@ class SeeObject(Node):
     def goal_callback(self, goal_request):
         """Accept or reject a client request to begin an action."""
         self.get_logger().info('Received goal request')
-        if goal_request.location != "same":
+        if goal_request.location != "previous_angles":
             self.joint_angles = None
 
         return GoalResponse.ACCEPT

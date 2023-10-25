@@ -1,5 +1,11 @@
+import os
+
 from launch import LaunchDescription
+from launch.actions import TimerAction
 from launch_ros.actions import Node
+
+from ament_index_python.packages import get_package_share_directory
+
 
 def generate_launch_description():
     return LaunchDescription([
@@ -38,5 +44,19 @@ def generate_launch_description():
             executable='press_estop.py',
             name='press_estop',
             output='screen',
+        ),
+
+        TimerAction(
+            period=3.0,
+            actions=[
+                Node(
+                    package='gologpp_agent',
+                    executable='gologpp_agent',
+                    output='screen',
+                    parameters=[
+                        {'gpp_code': os.path.join(get_package_share_directory("alert_auto_dexterity"), "gpp_agents", "estops_omni.gpp")}
+                    ],
+                )
+            ]
         ),
     ])

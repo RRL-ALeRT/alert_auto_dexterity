@@ -1,0 +1,69 @@
+
+action find_estop_set(string transition) {
+mapping:
+	"/pose_finder/change_state" {
+		transition = transition
+	}
+}
+
+action find_estop(string transition) {
+mapping:
+	"/single_pose_finder/change_state" {
+		transition = transition
+	}
+}
+
+action reach_estop() {
+mapping:
+	"/stand_in_front" {
+		location = ""
+	}
+}
+
+action spot_sit() {
+mapping:
+	"/sit" {
+        dummy = ""
+	}
+}
+
+action see_with_manipulator(string location) {
+mapping:
+	"/see_with_manipulator" {
+		location = location
+	}
+}
+
+action go_to_estop_manipulator() {
+mapping:
+	"/goto_estops_with_manipulator" {
+		location = ""
+	}
+}
+
+action press_estop() {
+mapping:
+	"/press_estop" {
+		location = ""
+	}
+}
+
+procedure main() {
+    find_estop_set("configure");
+    find_estop_set("activate");
+
+    reach_estop();
+    spot_sit();
+    see_with_manipulator("");
+
+    find_estop_set("deactivate");
+
+    go_to_estop_manipulator();
+
+    find_estop("configure");
+    find_estop("activate");
+    press_estop();
+    find_estop("deactivate");
+
+    see_with_manipulator("previous_angles");
+}

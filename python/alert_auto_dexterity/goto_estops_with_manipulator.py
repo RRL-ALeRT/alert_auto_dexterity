@@ -130,7 +130,7 @@ class SeeObject(Node):
                 self.create_rate(10).sleep()
                 continue
 
-            x = self.position.translation.x - 0.13
+            x = self.position.translation.x - 0.12
             y = self.position.translation.y
             z = self.position.translation.z
             xa = self.position.rotation.x

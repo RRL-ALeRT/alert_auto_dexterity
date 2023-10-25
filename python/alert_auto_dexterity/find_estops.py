@@ -70,7 +70,7 @@ class LifecyclePoseNode(LifecycleNode):
         self.keypoints_pub = None
         self.tf2_publish_timer = None
 
-        self.trigger_configure()
+        # self.trigger_configure()
 
     def on_configure(self, state: LifecycleState):
         self.bounding_box_pub = self.create_lifecycle_publisher(BoundingBoxArray, IMAGE_TOPIC + '/bb', 1)

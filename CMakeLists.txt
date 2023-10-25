@@ -43,4 +43,8 @@ install(DIRECTORY models
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(DIRECTORY gpp_agents
+  DESTINATION share/${PROJECT_NAME}
+)
+
 ament_package()

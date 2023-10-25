@@ -30,7 +30,6 @@ DEBUG = False
 
 # Relative 3D coordinates of 5 points with the first point as the origin (0,0,0)
 # TL, TR, BL, BR, M
-# TL, TR, BL, BR
 relative_points = np.array([
     [-0.059/2,  0.059/2, 0],
     [ 0.059/2,  0.059/2, 0],
@@ -70,7 +69,7 @@ class LifecyclePoseNode(LifecycleNode):
         self.bounding_box_pub = None
         self.keypoints_pub = None
         self.tf2_publish_timer = None
-        self.trigger_configure()
+        # self.trigger_configure()
 
     def on_configure(self, state: LifecycleState):
         self.bounding_box_pub = self.create_lifecycle_publisher(BoundingBoxArray, IMAGE_TOPIC + '/bb', 1)
