@@ -149,6 +149,7 @@ class MoveRobot(Node):
 
         except Exception as e:
             self.get_logger().warn(f"TF2 lookup failed: {str(e)}")
+            self.create_rate(2).sleep()
 
     def calculate_pid_linear(self, error):
         # PID control for linear velocity

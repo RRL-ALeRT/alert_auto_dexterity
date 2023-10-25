@@ -15,7 +15,42 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='tool_target_transform',
             output='screen',
-            arguments=['0', '0', '0', '-0.785', '3.14', '0', 'estop_set', 'tool_target']
+            arguments=['0', '0', '0', '0', '3.14', '0', 'estop_set', 'tool_target']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='tool_target_transform',
+            output='screen',
+            arguments=['0', '0', '0', '0.785', '0', '0', 'tool_target', 'estop_M']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='tool_target_transform',
+            output='screen',
+            arguments=['0.13', '0.13', '0.08', '0.785', '-0.785', '0', 'tool_target', 'estop_TL']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='tool_target_transform',
+            output='screen',
+            arguments=['-0.13', '0.13', '0.08', '-0.785', '0.785', '0', 'tool_target', 'estop_TR']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='tool_target_transform',
+            output='screen',
+            arguments=['0.13', '-0.13', '0.08', '-0.785', '0', '-0.785', 'tool_target', 'estop_BL']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='tool_target_transform',
+            output='screen',
+            arguments=['-0.13', '-0.13', '0.08', '-0.785', '0', '-0.785', 'tool_target', 'estop_BR']
         ),
         Node(
             package='tf2_ros',

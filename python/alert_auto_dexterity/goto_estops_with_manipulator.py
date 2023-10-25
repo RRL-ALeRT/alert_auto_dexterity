@@ -92,6 +92,8 @@ class SeeObject(Node):
     def goal_callback(self, goal_request):
         """Accept or reject a client request to begin an action."""
         self.get_logger().info('Received goal request')
+
+        self.location = goal_request.location
         return GoalResponse.ACCEPT
 
     def handle_accepted_callback(self, goal_handle):
@@ -126,11 +128,12 @@ class SeeObject(Node):
                 return ManipulatorManipulation.Result()
 
             if self.position is None:
-                self.get_tf("base_link", "tool_target")
+                # self.get_tf("base_link", "tool_target")
+                self.get_tf("base_link", self.location)
                 self.create_rate(10).sleep()
                 continue
 
-            x = self.position.translation.x - 0.13
+            x = self.position.translation.x - 0.12
             y = self.position.translation.y
             z = self.position.translation.z
             xa = self.position.rotation.x

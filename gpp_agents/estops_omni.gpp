@@ -34,10 +34,10 @@ mapping:
 	}
 }
 
-action go_to_estop_manipulator() {
+action go_to_estop_manipulator(string location) {
 mapping:
 	"/goto_estops_with_manipulator" {
-		location = ""
+		location = location
 	}
 }
 
@@ -58,7 +58,7 @@ procedure main() {
 
     find_estop_set("deactivate");
 
-    go_to_estop_manipulator();
+    go_to_estop_manipulator("estop_M");
     find_estop("configure");
 
     find_estop("activate");
@@ -66,4 +66,36 @@ procedure main() {
     find_estop("deactivate");
 
     see_with_manipulator("previous_angles");
+
+    // go_to_estop_manipulator("estop_TR");
+
+    // find_estop("activate");
+    // press_estop();
+    // find_estop("deactivate");
+
+    // see_with_manipulator("previous_angles");
+
+    // go_to_estop_manipulator("estop_BR");
+
+    // find_estop("activate");
+    // press_estop();
+    // find_estop("deactivate");
+
+    // see_with_manipulator("previous_angles");
+
+    // go_to_estop_manipulator("estop_TL");
+
+    // find_estop("activate");
+    // press_estop();
+    // find_estop("deactivate");
+
+    // see_with_manipulator("previous_angles");
+
+    // go_to_estop_manipulator("estop_BL");
+
+    // find_estop("activate");
+    // press_estop();
+    // find_estop("deactivate");
+
+    // see_with_manipulator("previous_angles");
 }
