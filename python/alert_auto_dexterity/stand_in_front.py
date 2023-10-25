@@ -90,7 +90,7 @@ class MoveRobot(Node):
             
             self.move_robot(goal_handle)
 
-            # self.create_rate(100).sleep()
+        self.create_rate(1).sleep()
 
         goal_handle.succeed()
 

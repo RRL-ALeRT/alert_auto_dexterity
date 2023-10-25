@@ -46,6 +46,13 @@ def moveit_motion(x,y,z,qx,qy,qz,qw):
     return False, target_angles
 
 
+def moveit_set_joint_angles(target_angles):
+    moveit = Moveit()
+    moveit.send_goal(target_angles)
+    while not moveit.goal_done:
+        rclpy.spin_once(moveit)
+
+
 def quaternion_from_euler(ai, aj, ak):
     ai /= 2.0
     aj /= 2.0
@@ -132,6 +139,7 @@ class SeeObject(Node):
             
             # Set joint angles to past joint angles if location == "same" in goal_request
             if self.joint_angles is not None:
+                moveit_set_joint_angles(self.joint_angles)
                 goal_handle.succeed()
 
                 # Populate result message
@@ -169,6 +177,9 @@ class SeeObject(Node):
                 return ManipulatorManipulation.Result()
             
             break
+
+        self.position = None
+        self.orientation = None
 
         self.create_rate(1).sleep()
 
@@ -232,6 +243,9 @@ class SeeObject(Node):
                 return ManipulatorManipulation.Result()
 
             break
+
+        # Sleep time to detect objects_set again
+        self.create_rate(1).sleep()
 
         goal_handle.succeed()
 

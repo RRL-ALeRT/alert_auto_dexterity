@@ -8,7 +8,7 @@ mapping:
 
 action find_estop(string transition) {
 mapping:
-	"/single_pose_finder/change_state" {
+	"/find_object_pose/change_state" {
 		transition = transition
 	}
 }
@@ -59,8 +59,8 @@ procedure main() {
     find_estop_set("deactivate");
 
     go_to_estop_manipulator();
-
     find_estop("configure");
+
     find_estop("activate");
     press_estop();
     find_estop("deactivate");

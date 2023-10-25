@@ -62,6 +62,12 @@ kpt_shape = [5, 2]
 label_map = ["estop"]
 
 
+def calculate_distance(point1, point2):
+    x1, y1 = point1
+    x2, y2 = point2
+    return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+
+
 class LifecyclePoseNode(LifecycleNode):
     def __init__(self, node_name, **kwargs):
         super().__init__(node_name, **kwargs)
@@ -76,6 +82,8 @@ class LifecyclePoseNode(LifecycleNode):
         self.keypoints_pub = self.create_lifecycle_publisher(KeypointsArray, IMAGE_TOPIC + '/kp', 1)
 
         self.t = None
+        self.closest_estop = None
+        self.closest_distance = float('inf')
         self.tf2_publish_timer = self.create_timer(0.1, self.publish_tf2_continuously)
 
         self.camera_sub = self.create_subscription(Image, IMAGE_TOPIC, self.camera_cb, 1)
@@ -105,6 +113,9 @@ class LifecyclePoseNode(LifecycleNode):
   
     def on_deactivate(self, state: LifecycleState):
         self.get_logger().info("on_deactivate() is called.")
+        
+        self.closest_estop = None
+        self.closest_distance = float('inf')
 
         return super().on_deactivate(state)
 
@@ -150,42 +161,38 @@ class LifecyclePoseNode(LifecycleNode):
         kp_msg.header = msg.header
         kp_msg.type = label_map[0]
 
-        for detection in results:
-            if len(detection['box']) == 0:
-                continue
-            keypoints = detection.get('kpt')[0]
-            if keypoints is None:
-                continue
-            box = detection['box'][0]
-            x1, y1, x2, y2, score, label = box
-            if x1 <= BOUNDING_BOX_EDGE_LIMIT or x2 >= image_width - BOUNDING_BOX_EDGE_LIMIT or  \
-               y1 <= BOUNDING_BOX_EDGE_LIMIT or y2 >= image_height - BOUNDING_BOX_EDGE_LIMIT:
-                continue
+        detection = results[0]
 
-            if score < SCORE_THRESHOLD:
-                continue
+        center_x = image.shape[1] // 2
+        center_y = image.shape[0] // 2
 
-            EDGE_LIMIT_FOR_BOUNDING_BOX = 20
-
+        idx = 0
+        for box, keypoints in zip(detection['box'], detection['kpt']):
             for keypoint in keypoints:
-                if not (EDGE_LIMIT_FOR_BOUNDING_BOX < keypoint[0] < image_width - EDGE_LIMIT_FOR_BOUNDING_BOX):
-                    continue
-                if not (EDGE_LIMIT_FOR_BOUNDING_BOX < keypoint[1] < image_height - EDGE_LIMIT_FOR_BOUNDING_BOX):
-                    continue
+                distance = calculate_distance(keypoint, (center_x, center_y))
+                if distance < self.closest_distance:
+                    self.closest_distance = distance
+                    self.closest_estop = idx
+            idx += 1
 
-            if len(keypoints > 0):
-                u1 = keypoints[0][0]
-                v1 = keypoints[0][1]
-                u2 = keypoints[1][0]
-                v2 = keypoints[1][1]
-                u3 = keypoints[2][0]
-                v3 = keypoints[2][1]
-                u4 = keypoints[3][0]
-                v4 = keypoints[3][1]
-                u5 = keypoints[4][0]
-                v5 = keypoints[4][1]
-            else:
-                continue
+        idx = self.closest_estop
+
+        if self.closest_estop is not None:
+            box = detection['box'][idx]
+            keypoints = detection['kpt'][idx]
+
+            x1, y1, x2, y2, score, label = box
+
+            u1 = keypoints[0][0]
+            v1 = keypoints[0][1]
+            u2 = keypoints[1][0]
+            v2 = keypoints[1][1]
+            u3 = keypoints[2][0]
+            v3 = keypoints[2][1]
+            u4 = keypoints[3][0]
+            v4 = keypoints[3][1]
+            u5 = keypoints[4][0]
+            v5 = keypoints[4][1]
 
             image_points = np.array([[u1, v1],
                                      [u2, v2],
@@ -205,7 +212,7 @@ class LifecyclePoseNode(LifecycleNode):
                     image = cv2.circle(image, (int(point[0]), int(point[1])), 1, (0,0,255), 5)
 
             bb = BoundingBox()
-            bb.name = label_map[0]
+            bb.name = label_map[0] + str(idx)
             bb.confidence = float(score)
             bb.cx = float(x1)
             bb.cy = float(y1)
@@ -214,7 +221,7 @@ class LifecyclePoseNode(LifecycleNode):
             bb_msg.array.append(bb)
 
             kp = Keypoints()
-            kp.name = label_map[0]
+            kp.name = label_map[0] + str(idx)
             for image_kp in image_points:
                 point = Point32()
                 point.x = float(image_kp[0])
@@ -270,7 +277,7 @@ def main():
     rclpy.init()
 
     executor = rclpy.executors.SingleThreadedExecutor()
-    lc_node = LifecyclePoseNode('single_pose_finder')
+    lc_node = LifecyclePoseNode('find_object_pose')
     executor.add_node(lc_node)
     try:
         executor.spin()
