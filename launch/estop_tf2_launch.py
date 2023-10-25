@@ -8,7 +8,7 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='spot_target_transform',
             output='screen',
-            arguments=['0.25', '0', '0.85', '0', '1.57', '-1.57', 'estop_set', 'spot_target']
+            arguments=['0.2', '0', '0.8', '0', '1.57', '-1.57', 'estop_set', 'spot_target']
         ),
         Node(
             package='tf2_ros',
@@ -71,6 +71,6 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='tool_estop_target_0_05_transform',
             output='screen',
-            arguments=['0', '0', '-0.05', '0', '0', '0', 'tool_estop_target', 'tool_estop_target_0_05']
+            arguments=['0', '0', '-0.04', '0', '0', '0', 'tool_estop_target', 'tool_estop_target_0_04']
         ),
     ])

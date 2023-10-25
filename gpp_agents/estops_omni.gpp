@@ -54,7 +54,7 @@ procedure main() {
 
     reach_estop();
     spot_sit();
-    see_with_manipulator("");
+    see_with_manipulator("previous_angles");
 
     find_estop_set("deactivate");
 
@@ -67,21 +67,21 @@ procedure main() {
 
     see_with_manipulator("previous_angles");
 
-    // go_to_estop_manipulator("estop_TR");
+    go_to_estop_manipulator("estop_TR");
 
-    // find_estop("activate");
-    // press_estop();
-    // find_estop("deactivate");
+    find_estop("activate");
+    press_estop();
+    find_estop("deactivate");
 
-    // see_with_manipulator("previous_angles");
+    see_with_manipulator("previous_angles");
 
-    // go_to_estop_manipulator("estop_BR");
+    go_to_estop_manipulator("estop_BR");
 
-    // find_estop("activate");
-    // press_estop();
-    // find_estop("deactivate");
+    find_estop("activate");
+    press_estop();
+    find_estop("deactivate");
 
-    // see_with_manipulator("previous_angles");
+    see_with_manipulator("previous_angles");
 
     // go_to_estop_manipulator("estop_TL");
 

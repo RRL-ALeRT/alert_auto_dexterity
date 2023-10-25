@@ -93,6 +93,8 @@ class SeeObject(Node):
     def goal_callback(self, goal_request):
         """Accept or reject a client request to begin an action."""
         self.get_logger().info('Received goal request')
+        self.tf_buffer.clear()
+
         return GoalResponse.ACCEPT
 
     def handle_accepted_callback(self, goal_handle):
@@ -104,6 +106,9 @@ class SeeObject(Node):
                 self._goal_handle.abort()
             self._goal_handle = goal_handle
 
+        self.position1 = None
+        self.position2 = None
+        
         goal_handle.execute()
 
     def cancel_callback(self, goal):
@@ -116,8 +121,6 @@ class SeeObject(Node):
         gripper = Gripper()
         self.get_logger().info('Executing goal...')
 
-        self.position1 = None
-        self.position2 = None
         while rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info('Goal aborted')
@@ -130,7 +133,7 @@ class SeeObject(Node):
 
             if self.position1 is None or self.position2 is None:
                 self.get_tf("base_link", "tool_estop_target_0_1")
-                self.get_tf("base_link", "tool_estop_target_0_05")
+                self.get_tf("base_link", "tool_estop_target_0_04")
                 self.create_rate(10).sleep()
                 continue
 

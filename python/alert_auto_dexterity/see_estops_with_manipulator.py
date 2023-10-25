@@ -101,8 +101,8 @@ class SeeObject(Node):
     def goal_callback(self, goal_request):
         """Accept or reject a client request to begin an action."""
         self.get_logger().info('Received goal request')
-        if goal_request.location != "previous_angles":
-            self.joint_angles = None
+        # if goal_request.location != "previous_angles":
+        #     self.joint_angles = None
 
         return GoalResponse.ACCEPT
 
@@ -180,11 +180,9 @@ class SeeObject(Node):
 
         self.position = None
         self.orientation = None
+        self.tf_buffer.clear()
 
         self.create_rate(1).sleep()
-
-        self.position = None
-        self.orientation = None
 
         while rclpy.ok():
             if not goal_handle.is_active:
@@ -236,13 +234,15 @@ class SeeObject(Node):
             feedback_msg.end_effector_target.rotation.w = result.w
             goal_handle.publish_feedback(feedback_msg)
 
-            manipulator_actuated, self.joint_angles = moveit_motion(x, y, z, result.x, result.y, result.z, result.w)
+            manipulator_actuated, joint_angles = moveit_motion(x, y, z, result.x, result.y, result.z, result.w)
 
             if not manipulator_actuated:
                 self.get_logger().info('Goal aborted')
                 return ManipulatorManipulation.Result()
 
             break
+
+        self.joint_angles = joint_angles
 
         # Sleep time to detect objects_set again
         self.create_rate(1).sleep()

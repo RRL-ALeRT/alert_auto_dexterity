@@ -108,12 +108,14 @@ class LifecyclePoseNode(LifecycleNode):
     def on_activate(self, state: LifecycleState):
         self.get_logger().info("on_activate() is called.")
         self.t = None
+        self.tf_buffer.clear()
 
         return super().on_activate(state)
   
     def on_deactivate(self, state: LifecycleState):
         self.get_logger().info("on_deactivate() is called.")
         
+        self.t = None
         self.closest_estop = None
         self.closest_distance = float('inf')
 
