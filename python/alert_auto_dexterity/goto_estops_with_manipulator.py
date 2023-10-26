@@ -16,6 +16,8 @@ from alert_auto_dexterity.action import ManipulatorManipulation
 from moveit_ik import MoveitIKClientAsync as IK
 from moveit_action_client import MoveGroupActionClient as Moveit
 
+from utils import combine_tf_transforms
+
 
 class Quaternion:
     def __init__(self, x, y, z, w):
@@ -130,8 +132,8 @@ class SeeObject(Node):
                 return ManipulatorManipulation.Result()
 
             if self.position is None:
-                # self.get_tf("base_link", "tool_target")
                 self.get_tf("base_link", self.location)
+
                 self.create_rate(10).sleep()
                 continue
 

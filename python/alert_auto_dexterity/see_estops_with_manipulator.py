@@ -7,7 +7,6 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 
 import tf2_ros
-import numpy as np
 import math
 import threading
 
@@ -16,21 +15,7 @@ from alert_auto_dexterity.action import ManipulatorManipulation
 from moveit_ik import MoveitIKClientAsync as IK
 from moveit_action_client import MoveGroupActionClient as Moveit
 
-
-class Quaternion:
-    def __init__(self, x, y, z, w):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.w = w
-
-    def __mul__(self, other):
-        result = Quaternion(0, 0, 0, 1)
-        result.x = self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y
-        result.y = self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x
-        result.z = self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w
-        result.w = self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z
-        return result
+from utils import *
 
 
 def moveit_motion(x,y,z,qx,qy,qz,qw):
@@ -52,30 +37,6 @@ def moveit_set_joint_angles(target_angles):
     while not moveit.goal_done:
         rclpy.spin_once(moveit)
 
-
-def quaternion_from_euler(ai, aj, ak):
-    ai /= 2.0
-    aj /= 2.0
-    ak /= 2.0
-    ci = math.cos(ai)
-    si = math.sin(ai)
-    cj = math.cos(aj)
-    sj = math.sin(aj)
-    ck = math.cos(ak)
-    sk = math.sin(ak)
-    cc = ci*ck
-    cs = ci*sk
-    sc = si*ck
-    ss = si*sk
-
-    q = np.empty((4, ))
-    q[0] = cj*sc - sj*cs
-    q[1] = cj*ss + sj*cc
-    q[2] = cj*cs - sj*sc
-    q[3] = cj*cc + sj*ss
-
-    return q
-    
 
 class SeeObject(Node):
     def __init__(self):

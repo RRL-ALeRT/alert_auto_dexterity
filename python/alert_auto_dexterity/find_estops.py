@@ -27,6 +27,8 @@ from world_info_msgs.msg import BoundingBox, BoundingBoxArray, Keypoints, Keypoi
 
 from ament_index_python.packages import get_package_share_directory
 
+from utils import combine_tf_transforms
+
 DEBUG = False
 
 # Relative 3D coordinates of 5 points with the first point as the origin (0,0,0)
@@ -279,7 +281,20 @@ class LifecyclePoseNode(LifecycleNode):
         if hasattr(self, 't'):
             # Send the transformation
             self.t.header.stamp = self.get_clock().now().to_msg()
-            self.tf_broadcaster.sendTransform(self.t)
+
+            tfs = [self.t]
+
+            tfs.append(combine_tf_transforms(self.t, "spot_target", [0.2, 0.0, 0.8], [ 0.0, 1.57, -1.57 ]))
+
+            t = combine_tf_transforms(self.t, "estop_tool_target", [0.0, 0.0, 0.0], [0.0, 3.14, 0.0])
+
+            tfs.append(combine_tf_transforms(t, "estop_TL", [ 0.13,  0.13, 0.08], [ 0.785, -0.785,  0.0  ]))
+            tfs.append(combine_tf_transforms(t, "estop_TR", [-0.13,  0.13, 0.08], [-0.785,  0.785,  0.0  ]))
+            tfs.append(combine_tf_transforms(t, "estop_BL", [ 0.13, -0.13, 0.08], [ 0.785,  0.0,   -0.785]))
+            tfs.append(combine_tf_transforms(t, "estop_BR", [-0.13, -0.13, 0.08], [-0.785,  0.0,   -0.785]))
+            tfs.append(combine_tf_transforms(t, "estop_M",  [ 0.0,   0.0,  0.0 ], [ 0.785,  0.0,    0.0  ]))
+
+            self.tf_broadcaster.sendTransform(tfs)
 
 
 def main():

@@ -26,6 +26,8 @@ from world_info_msgs.msg import BoundingBox, BoundingBoxArray, Keypoints, Keypoi
 
 from ament_index_python.packages import get_package_share_directory
 
+from utils import combine_tf_transforms
+
 DEBUG = False
 
 # Relative 3D coordinates of 5 points with the first point as the origin (0,0,0)
@@ -152,9 +154,6 @@ class LifecyclePoseNode(LifecycleNode):
         input_image = image[:, :, ::-1]
         results = detect(input_image, self.compiled_model, kpt_shape)
 
-        image_width = image.shape[1]
-        image_height = image.shape[0]
-
         bb_msg = BoundingBoxArray()
         bb_msg.header = msg.header
         bb_msg.type = label_map[0]
@@ -272,6 +271,15 @@ class LifecyclePoseNode(LifecycleNode):
         if self.t is not None:
             # Send the transformation
             self.t.header.stamp = self.get_clock().now().to_msg()
+
+            tfs = []
+
+            t = combine_tf_transforms(self.t, "tool_estop_target", [0.0, 0.0, 0.0], [0.0, 3.14, 0.0])
+            tfs.append(t)
+
+            tfs.append(combine_tf_transforms(t, "tool_estop_target_0_1", [0.0, 0.0, -0.1], [ 0.0, 0.0, 0.0]))
+            tfs.append(combine_tf_transforms(t, "tool_estop_target_0_04", [0.0, 0.0, -0.04], [ 0.0, 0.0, 0.0]))
+
             self.tf_broadcaster.sendTransform(self.t)
 
 

@@ -17,21 +17,7 @@ from moveit_ik import MoveitIKClientAsync as IK
 from moveit_action_client import MoveGroupActionClient as Moveit
 from gripper_action_client import GripperActionClient as Gripper
 
-
-class Quaternion:
-    def __init__(self, x, y, z, w):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.w = w
-
-    def __mul__(self, other):
-        result = Quaternion(0, 0, 0, 1)
-        result.x = self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y
-        result.y = self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x
-        result.z = self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w
-        result.w = self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z
-        return result
+from utils import Quaternion
 
 
 def moveit_motion(x,y,z,qx,qy,qz,qw):
