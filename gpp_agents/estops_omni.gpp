@@ -65,7 +65,7 @@ procedure main() {
     press_estop();
     find_estop("deactivate");
 
-    see_with_manipulator("previous_angles");
+    // see_with_manipulator("previous_angles");
 
     go_to_estop_manipulator("estop_TR");
 
@@ -73,7 +73,7 @@ procedure main() {
     press_estop();
     find_estop("deactivate");
 
-    see_with_manipulator("previous_angles");
+    // see_with_manipulator("previous_angles");
 
     go_to_estop_manipulator("estop_BR");
 

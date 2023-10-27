@@ -136,6 +136,7 @@ class SeeObject(Node):
                 continue
 
             x = self.position.translation.x - 0.13
+            # x = self.position.translation.x
             y = self.position.translation.y
             z = self.position.translation.z
             xa = self.position.rotation.x
