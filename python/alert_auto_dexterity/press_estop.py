@@ -119,7 +119,7 @@ class SeeObject(Node):
 
             if self.position1 is None or self.position2 is None:
                 self.get_tf("base_link", "tool_estop_target_0_1")
-                self.get_tf("base_link", "tool_estop_target_0_04")
+                self.get_tf("base_link", "tool_estop_target_0_035")
                 self.create_rate(10).sleep()
                 continue
 
@@ -265,8 +265,8 @@ class SeeObject(Node):
                 self.position2 = transform.transform
 
         except Exception as e:
-            # self.get_logger().warn(f"TF2 lookup failed: {str(e)}")
-            pass
+            self.get_logger().warn(f"TF2 lookup failed: {str(e)}")
+            self.create_rate(0.5).sleep()
 
 
 def main(args=None):

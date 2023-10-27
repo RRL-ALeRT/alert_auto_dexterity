@@ -137,7 +137,7 @@ class SeeObject(Node):
                 self.create_rate(10).sleep()
                 continue
 
-            x = self.position.translation.x - 0.13
+            x = self.position.translation.x
             y = self.position.translation.y
             z = self.position.translation.z
             xa = self.position.rotation.x
@@ -172,19 +172,18 @@ class SeeObject(Node):
 
     def get_tf(self, header, child):
         try:
-            transform = self.tf_buffer.lookup_transform(
+            t = self.tf_buffer.lookup_transform(
                 header,
                 child,
                 rclpy.time.Time()
             )
-            if header == "base_link":
-                self.position = transform.transform
-            else:
-                self.orientation = transform.transform
+            
+            # Offset in z for tool_target
+            self.position = combine_tf_transforms(t, "offset_in_z", [0.0, 0.0, -0.1], [0.0, 0.0, 0.0]).transform
 
         except Exception as e:
-            # self.get_logger().warn(f"TF2 lookup failed: {str(e)}")
-            pass
+            self.get_logger().warn(f"TF2 lookup failed: {str(e)}")
+            self.create_rate(2).sleep()
 
 
 def main(args=None):

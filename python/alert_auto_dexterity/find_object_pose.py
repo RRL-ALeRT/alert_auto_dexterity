@@ -278,9 +278,9 @@ class LifecyclePoseNode(LifecycleNode):
             tfs.append(t)
 
             tfs.append(combine_tf_transforms(t, "tool_estop_target_0_1", [0.0, 0.0, -0.1], [ 0.0, 0.0, 0.0]))
-            tfs.append(combine_tf_transforms(t, "tool_estop_target_0_04", [0.0, 0.0, -0.04], [ 0.0, 0.0, 0.0]))
+            tfs.append(combine_tf_transforms(t, "tool_estop_target_0_035", [0.0, 0.0, -0.04], [ 0.0, 0.0, 0.0]))
 
-            self.tf_broadcaster.sendTransform(self.t)
+            self.tf_broadcaster.sendTransform(tfs)
 
 
 def main():
