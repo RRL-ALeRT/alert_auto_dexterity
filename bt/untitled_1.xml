@@ -1,15 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4">
+<root BTCPP_format="4"
+      main_tree_to_execute="Untitled">
   <BehaviorTree ID="Untitled">
-    <SeeObjectSet location="&quot;previous_angles&quot;"/>
+    <RunOnce then_skip="true">
+      <Sequence>
+        <RunOnce then_skip="true">
+          <Sequence>
+            <ChangeState service_name="/pose_finder/change_state"
+                         label="configure"/>
+            <ChangeState service_name="/pose_finder/change_state"
+                         label="activate"/>
+            <StandInFront location="target"/>
+            <Trigger service_name="/sit"/>
+            <ManipulatorAction action_name="/see_with_manipulator"
+                               location="new_angles"/>
+            <ChangeState service_name="/pose_finder/change_state"
+                         label="deactivate"/>
+            <ChangeState service_name="/find_object_pose/change_state"
+                         label="configure"/>
+          </Sequence>
+        </RunOnce>
+        <Sequence>
+          <ManipulatorAction action_name="/goto_object_with_manipulator"
+                             location="estop_M"/>
+          <ChangeState service_name="/find_object_pose/change_state"
+                       label="activate"/>
+          <ManipulatorAction action_name="/single_object_task"
+                             location="estop"/>
+          <ChangeState service_name="/find_object_pose/change_state"
+                       label="deactivate"/>
+        </Sequence>
+      </Sequence>
+    </RunOnce>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->
   <TreeNodesModel>
-    <Action ID="SeeObjectSet"
+    <Action ID="ChangeState"
             editable="true">
-      <input_port name="location"
-                  default="&quot;previous_angles&quot;">Just look at the detected object set with manipulator</input_port>
+      <input_port name="service_name"/>
+      <input_port name="label"/>
+    </Action>
+    <Action ID="ManipulatorAction"
+            editable="true">
+      <input_port name="action_name">/see_with_manipulator, /goto_object_with_manipulator, /single_object_tast</input_port>
+      <input_port name="location"/>
+    </Action>
+    <Action ID="StandInFront"
+            editable="true">
+      <input_port name="location"/>
+    </Action>
+    <Action ID="Trigger"
+            editable="true">
+      <input_port name="service_name"
+                  default="/sit"/>
     </Action>
   </TreeNodesModel>
 

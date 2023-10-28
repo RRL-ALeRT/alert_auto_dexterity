@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" project_name="Project">
+    <include path="untitled_1.xml"/>
+    <!-- Description of Node Models (used by Groot) -->
+    <TreeNodesModel>
+        <Action ID="ChangeState" editable="true">
+            <input_port name="service_name"/>
+            <input_port name="label"/>
+        </Action>
+        <Action ID="ManipulatorAction" editable="true">
+            <input_port name="action_name">/see_with_manipulator, /goto_object_with_manipulator, /single_object_tast</input_port>
+            <input_port name="location"/>
+        </Action>
+        <Action ID="StandInFront" editable="true">
+            <input_port name="location"/>
+        </Action>
+        <Action ID="Trigger" editable="true">
+            <input_port name="service_name" default="/sit"/>
+        </Action>
+    </TreeNodesModel>
+</root>

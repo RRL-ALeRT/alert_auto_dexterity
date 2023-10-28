@@ -66,7 +66,7 @@ class SeeObject(Node):
         self._action_server = ActionServer(
             self,
             ManipulatorManipulation,
-            'press_estop',
+            'single_object_task',
             execute_callback=self.execute_callback,
             goal_callback=self.goal_callback,
             handle_accepted_callback=self.handle_accepted_callback,

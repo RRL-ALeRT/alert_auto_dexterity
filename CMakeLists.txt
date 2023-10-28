@@ -13,33 +13,48 @@ find_package(geometry_msgs REQUIRED)
 
 find_package(behaviortree_ros2 REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
+find_package(lifecycle_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/StandInFront.action"
-  "action/ManipulatorManipulation.action"
+  "action/ManipulatorAction.action"
   DEPENDENCIES geometry_msgs
 )
 rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
 
-set(dependencies "ament_index_cpp" "geometry_msgs" "rclcpp" "rclcpp_action" "std_msgs" "std_srvs")
+add_library(manipulator_action SHARED bt_nodes/manipulator_action.cpp)
+target_compile_definitions(manipulator_action PRIVATE BT_PLUGIN_EXPORT)
+ament_target_dependencies(manipulator_action behaviortree_ros2)
+target_link_libraries(manipulator_action "${cpp_typesupport_target}")
 
-add_library(see_object_set SHARED bt_nodes/see_object_set.cpp)
-target_compile_definitions(see_object_set PRIVATE BT_PLUGIN_EXPORT)
-ament_target_dependencies(see_object_set behaviortree_ros2)
-target_link_libraries(see_object_set "${cpp_typesupport_target}")
+add_library(stand_in_front SHARED bt_nodes/stand_in_front.cpp)
+target_compile_definitions(stand_in_front PRIVATE BT_PLUGIN_EXPORT)
+ament_target_dependencies(stand_in_front behaviortree_ros2)
+target_link_libraries(stand_in_front "${cpp_typesupport_target}")
 
-add_executable(see_object_set_dyn bt_nodes/execute.cpp)
-target_link_libraries(see_object_set_dyn see_object_set)
-ament_target_dependencies(see_object_set_dyn behaviortree_ros2)
+add_library(trigger SHARED bt_nodes/trigger.cpp)
+target_compile_definitions(trigger PRIVATE BT_PLUGIN_EXPORT)
+ament_target_dependencies(trigger behaviortree_ros2 std_srvs)
+
+add_library(change_state SHARED bt_nodes/change_state.cpp)
+target_compile_definitions(change_state PRIVATE BT_PLUGIN_EXPORT)
+ament_target_dependencies(change_state behaviortree_ros2 lifecycle_msgs)
+
+add_executable(execute_tree bt_nodes/execute.cpp)
+target_link_libraries(execute_tree manipulator_action stand_in_front trigger change_state)
+ament_target_dependencies(execute_tree behaviortree_ros2)
 
 install(TARGETS
-  see_object_set
-  add_cropped_octomap
+  manipulator_action
+  stand_in_front
+  trigger
+  change_state
   DESTINATION bin/${PROJECT_NAME}
 )
 
 install(TARGETS
-  see_object_set_dyn
+  execute_tree
   DESTINATION lib/${PROJECT_NAME}
 )
 

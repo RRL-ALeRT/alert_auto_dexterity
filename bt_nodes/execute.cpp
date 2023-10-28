@@ -16,9 +16,18 @@ int main(int argc, char **argv)
 
   RosNodeParams params;
   params.nh = nh;
-  params.default_port_value = "/see_with_manipulator";
 
-  RegisterRosNode(factory, "/home/skpawar1305/ros2_ws/install/alert_auto_dexterity/bin/alert_auto_dexterity/libsee_object_set.so", params);
+  params.default_port_value = "/manipulator_action";
+  RegisterRosNode(factory, "/home/skpawar1305/ros2_ws/install/alert_auto_dexterity/bin/alert_auto_dexterity/libmanipulator_action.so", params);
+
+  params.default_port_value = "/trigger";
+  RegisterRosNode(factory, "/home/skpawar1305/ros2_ws/install/alert_auto_dexterity/bin/alert_auto_dexterity/libtrigger.so", params);
+
+  params.default_port_value = "/change_state";
+  RegisterRosNode(factory, "/home/skpawar1305/ros2_ws/install/alert_auto_dexterity/bin/alert_auto_dexterity/libchange_state.so", params);
+
+  params.default_port_value = "/stand_in_front";
+  RegisterRosNode(factory, "/home/skpawar1305/ros2_ws/install/alert_auto_dexterity/bin/alert_auto_dexterity/libstand_in_front.so", params);
 
   auto tree = factory.createTreeFromFile("/home/skpawar1305/ros2_ws/src/alert_auto_dexterity/bt/untitled_1.xml");
 

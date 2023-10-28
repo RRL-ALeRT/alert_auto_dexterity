@@ -44,6 +44,8 @@ class MoveRobot(Node):
         self.kd_angular = 0.0003  # Derivative gain for angular velocity (initially set to 0)
 
     def goal_callback(self, goal_request):
+        self.get_logger().info(f"{goal_request}")
+
         """Accept or reject a client request to begin an action."""
         self.get_logger().info('Received goal request')
         return GoalResponse.ACCEPT
