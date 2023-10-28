@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Untitled">
+    <SeeObjectSet location="&quot;previous_angles&quot;"/>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="SeeObjectSet"
+            editable="true">
+      <input_port name="location"
+                  default="&quot;previous_angles&quot;">Just look at the detected object set with manipulator</input_port>
+    </Action>
+  </TreeNodesModel>
+
+</root>
