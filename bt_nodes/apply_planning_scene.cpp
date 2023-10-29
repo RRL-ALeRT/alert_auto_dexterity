@@ -19,7 +19,11 @@ public:
 
   static BT::PortsList providedPorts()
   {
-    return providedBasicPorts({InputPort<unsigned>("objects"), InputPort<unsigned>("octomap"), InputPort<unsigned>("operation")});
+    return providedBasicPorts({
+      InputPort<unsigned>("objects"),
+      InputPort<unsigned>("operation"),
+      InputPort<std::shared_ptr<octomap_msgs::msg::Octomap>>("octomap")
+    });
   }
 
   bool setRequest(Request::SharedPtr& request) override
@@ -29,12 +33,7 @@ public:
     if (operation != "octomap")
     {
       auto objects = getInput<std::string>("objects").value();
-      std::vector<std::string> object_vec;
-      std::istringstream f(objects);
-      std::string s;
-      while (std::getline(f, s, ';')) {
-        object_vec.push_back(s);
-      }
+      auto object_vec = splitString(objects, ';');
 
       for (const auto& object: object_vec)
       {
@@ -65,7 +64,7 @@ public:
     }
     else
     {
-      auto octomap_ptr = getInput<std::shared_ptr<octomap_msgs::msg::Octomap>>("operation").value();
+      auto octomap_ptr = getInput<std::shared_ptr<octomap_msgs::msg::Octomap>>("octomap").value();
       auto octomap = *octomap_ptr;
       request->scene.world.octomap.header = octomap.header;
       request->scene.world.octomap.octomap = octomap;

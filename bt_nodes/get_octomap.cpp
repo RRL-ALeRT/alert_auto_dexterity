@@ -33,8 +33,7 @@ public:
   {
     RCLCPP_INFO( node_->get_logger(), "%s: onResponseReceived.", name().c_str() );
 
-    std::shared_ptr<octomap_msgs::msg::Octomap> octomap_ptr;
-    *octomap_ptr = response->map;
+    auto octomap_ptr = std::make_shared<octomap_msgs::msg::Octomap>>(response->map);
     setOutput<std::shared_ptr<octomap_msgs::msg::Octomap>>("octomap", octomap_ptr);
 
     return NodeStatus::SUCCESS;

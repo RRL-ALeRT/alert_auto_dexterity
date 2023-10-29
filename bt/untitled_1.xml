@@ -4,11 +4,13 @@
   <BehaviorTree ID="Object_task">
     <Sequence>
       <ApplyPlanningScene objects="estop_M;estop_TL;estop_TR;estop_BL;estop_BR;"
-                          operation="add"/>
+                          operation="add"
+                          octomap=""/>
       <ManipulatorAction action_name="/goto_object_with_manipulator"
                          location="{object}"/>
       <ApplyPlanningScene objects="{object}"
-                          operation="remove"/>
+                          operation="remove"
+                          octomap=""/>
       <ChangeState service_name="/find_object_pose/change_state"
                    label="activate"/>
       <ManipulatorAction action_name="/single_object_task"
@@ -41,10 +43,10 @@
                      label="configure"/>
         <ManipulatorAction action_name="/clear_octomap_box"
                            location="estop_set"/>
-        <GetOctomap service_name="/octomap_full"
-                    octomap="{octomap}"/>
-        <ApplyPlanningScene objects="{octomap}"
-                            operation="octomap"/>
+        <GetOctomap octomap="{octomap}"/>
+        <ApplyPlanningScene objects=""
+                            operation="octomap"
+                            octomap="{octomap}"/>
       </Sequence>
       <Fallback>
         <ForceFailure>
@@ -82,6 +84,7 @@
       <input_port name="objects"/>
       <input_port name="operation"
                   default="add"/>
+      <input_port name="octomap"/>
     </Action>
     <Action ID="ChangeState"
             editable="true">
@@ -90,7 +93,6 @@
     </Action>
     <Action ID="GetOctomap"
             editable="true">
-      <input_port name="service_name"/>
       <output_port name="octomap"/>
     </Action>
     <Action ID="ManipulatorAction"
