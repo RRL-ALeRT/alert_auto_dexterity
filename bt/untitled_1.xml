@@ -41,6 +41,10 @@
                      label="configure"/>
         <ManipulatorAction action_name="/clear_octomap_box"
                            location="estop_set"/>
+        <GetOctomap service_name="/octomap_full"
+                    octomap="{octomap}"/>
+        <ApplyPlanningScene objects="{octomap}"
+                            operation="octomap"/>
       </Sequence>
       <Fallback>
         <ForceFailure>
@@ -83,6 +87,11 @@
             editable="true">
       <input_port name="service_name"/>
       <input_port name="label"/>
+    </Action>
+    <Action ID="GetOctomap"
+            editable="true">
+      <input_port name="service_name"/>
+      <output_port name="octomap"/>
     </Action>
     <Action ID="ManipulatorAction"
             editable="true">

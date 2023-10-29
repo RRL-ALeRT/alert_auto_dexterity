@@ -4,6 +4,7 @@
 #include "geometry_msgs/msg/pose.hpp"
 #include "moveit_msgs/msg/collision_object.hpp"
 #include "shape_msgs/msg/solid_primitive.hpp"
+#include "octomap_msgs/msg/octomap.hpp"
 
 using namespace BT;
 
@@ -18,46 +19,56 @@ public:
 
   static BT::PortsList providedPorts()
   {
-    return providedBasicPorts({InputPort<unsigned>("objects"), InputPort<unsigned>("operation")});
+    return providedBasicPorts({InputPort<unsigned>("objects"), InputPort<unsigned>("octomap"), InputPort<unsigned>("operation")});
   }
 
   bool setRequest(Request::SharedPtr& request) override
   {
-    auto objects = getInput<std::string>("objects").value();
-    std::vector<std::string> object_vec;
-    std::istringstream f(objects);
-    std::string s;
-    while (std::getline(f, s, ';')) {
-      object_vec.push_back(s);
-    }
-
     auto operation = getInput<std::string>("operation").value();
 
-    for (const auto& object: object_vec)
+    if (operation != "octomap")
     {
-      moveit_msgs::msg::CollisionObject scene_object;
-      scene_object.header.frame_id = object;
-      scene_object.id = object;
-      if (operation == "add")
-        scene_object.operation = moveit_msgs::msg::CollisionObject::APPEND;
-      else
-        scene_object.operation = moveit_msgs::msg::CollisionObject::REMOVE;
+      auto objects = getInput<std::string>("objects").value();
+      std::vector<std::string> object_vec;
+      std::istringstream f(objects);
+      std::string s;
+      while (std::getline(f, s, ';')) {
+        object_vec.push_back(s);
+      }
 
-      // Define the geometry of the cube
-      shape_msgs::msg::SolidPrimitive cube_primitive;
-      cube_primitive.type = shape_msgs::msg::SolidPrimitive::BOX;
-      cube_primitive.dimensions = {0.2, 0.2, 0.2};  // Cube size (x, y, z)
+      for (const auto& object: object_vec)
+      {
+        moveit_msgs::msg::CollisionObject scene_object;
+        scene_object.header.frame_id = object;
+        scene_object.id = object;
+        if (operation == "add")
+          scene_object.operation = moveit_msgs::msg::CollisionObject::APPEND;
+        else
+          scene_object.operation = moveit_msgs::msg::CollisionObject::REMOVE;
 
-      // Define the pose of the cube
-      geometry_msgs::msg::Pose cube_pose;
-      cube_pose.position.x = 0.0;
-      cube_pose.position.y = 0.0;
-      cube_pose.position.z = 0.1;
+        // Define the geometry of the cube
+        shape_msgs::msg::SolidPrimitive cube_primitive;
+        cube_primitive.type = shape_msgs::msg::SolidPrimitive::BOX;
+        cube_primitive.dimensions = {0.2, 0.2, 0.2};  // Cube size (x, y, z)
 
-      scene_object.primitives.push_back(cube_primitive);
-      scene_object.primitive_poses.push_back(cube_pose);
+        // Define the pose of the cube
+        geometry_msgs::msg::Pose cube_pose;
+        cube_pose.position.x = 0.0;
+        cube_pose.position.y = 0.0;
+        cube_pose.position.z = 0.1;
 
-      request->scene.world.collision_objects.push_back(scene_object);
+        scene_object.primitives.push_back(cube_primitive);
+        scene_object.primitive_poses.push_back(cube_pose);
+
+        request->scene.world.collision_objects.push_back(scene_object);
+      }
+    }
+    else
+    {
+      auto octomap_ptr = getInput<std::shared_ptr<octomap_msgs::msg::Octomap>>("operation").value();
+      auto octomap = *octomap_ptr;
+      request->scene.world.octomap.header = octomap.header;
+      request->scene.world.octomap.octomap = octomap;
     }
     request->scene.is_diff = true;
 

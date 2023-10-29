@@ -5,6 +5,7 @@
 #include "behaviortree_ros2/plugins.hpp"
 
 #include <ament_index_cpp/get_package_prefix.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 using namespace BT;
 
@@ -35,7 +36,10 @@ int main(int argc, char **argv)
   params.default_port_value = "/apply_planning_scene";
   RegisterRosNode(factory, bin_directory + "libapply_planning_scene.so", params);
 
-  auto tree = factory.createTreeFromFile("/home/skpawar1305/ros2_ws/src/alert_auto_dexterity/bt/untitled_1.xml");
+  params.default_port_value = "/get_octomap";
+  RegisterRosNode(factory, bin_directory + "libget_octomap.so", params);
+
+  auto tree = factory.createTreeFromFile(ament_index_cpp::get_package_share_directory("alert_auto_dexterity") + "/bt/untitled_1.xml");
 
   // Connect the Groot2Publisher. This will allow Groot2 to
   // get the tree and poll status updates.
