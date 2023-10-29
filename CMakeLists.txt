@@ -23,6 +23,9 @@ find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 
+find_package(moveit_msgs REQUIRED)
+find_package(shape_msgs REQUIRED)
+
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/StandInFront.action"
   "action/ManipulatorAction.action"
@@ -51,8 +54,12 @@ add_library(change_state SHARED bt_nodes/change_state.cpp)
 target_compile_definitions(change_state PRIVATE BT_PLUGIN_EXPORT)
 ament_target_dependencies(change_state behaviortree_ros2 lifecycle_msgs)
 
+add_library(apply_planning_scene SHARED bt_nodes/apply_planning_scene.cpp)
+target_compile_definitions(apply_planning_scene PRIVATE BT_PLUGIN_EXPORT)
+ament_target_dependencies(apply_planning_scene behaviortree_ros2 moveit_msgs geometry_msgs moveit_msgs shape_msgs)
+
 add_executable(execute_tree bt_nodes/execute.cpp)
-target_link_libraries(execute_tree manipulator_action stand_in_front trigger change_state)
+target_link_libraries(execute_tree manipulator_action stand_in_front trigger change_state apply_planning_scene)
 ament_target_dependencies(execute_tree behaviortree_ros2)
 
 install(TARGETS
@@ -60,6 +67,7 @@ install(TARGETS
   stand_in_front
   trigger
   change_state
+  apply_planning_scene
   DESTINATION bin/${PROJECT_NAME}
 )
 
@@ -82,6 +90,10 @@ install(DIRECTORY models
 )
 
 install(DIRECTORY gpp_agents
+  DESTINATION share/${PROJECT_NAME}
+)
+
+install(DIRECTORY bt
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -3,6 +3,12 @@
       main_tree_to_execute="Untitled">
   <BehaviorTree ID="Object_task">
     <Sequence>
+      <ApplyPlanningScene objects="estop_M;estop_TL;estop_TR;estop_BL;estop_BR;"
+                          operation="add"/>
+      <ManipulatorAction action_name="/goto_object_with_manipulator"
+                         location="{object}"/>
+      <ApplyPlanningScene objects="{object}"
+                          operation="remove"/>
       <ChangeState service_name="/find_object_pose/change_state"
                    label="activate"/>
       <ManipulatorAction action_name="/single_object_task"
@@ -14,53 +20,65 @@
 
   <BehaviorTree ID="Untitled">
     <Sequence>
-      <RunOnce then_skip="true">
-        <Sequence>
-          <ChangeState service_name="/PointCloudXyzNode/change_state"
-                       label="configure"/>
-          <ChangeState service_name="/PointCloudXyzNode/change_state"
-                       label="activate"/>
-          <ChangeState service_name="/pose_finder/change_state"
-                       label="configure"/>
-          <ChangeState service_name="/pose_finder/change_state"
-                       label="activate"/>
-          <StandInFront location="target"/>
-          <Trigger service_name="/sit"/>
-          <ManipulatorAction action_name="/see_with_manipulator"
-                             location="new_angles"/>
-          <ChangeState service_name="/PointCloudXyzNode/change_state"
-                       label="deactivate"/>
-          <ChangeState service_name="/pose_finder/change_state"
-                       label="deactivate"/>
-          <ChangeState service_name="/find_object_pose/change_state"
-                       label="configure"/>
-        </Sequence>
-      </RunOnce>
+      <Sequence>
+        <ChangeState service_name="/PointCloudXyzNode/change_state"
+                     label="configure"/>
+        <ChangeState service_name="/PointCloudXyzNode/change_state"
+                     label="activate"/>
+        <ChangeState service_name="/pose_finder/change_state"
+                     label="configure"/>
+        <ChangeState service_name="/pose_finder/change_state"
+                     label="activate"/>
+        <StandInFront location="target"/>
+        <Trigger service_name="/sit"/>
+        <ManipulatorAction action_name="/see_with_manipulator"
+                           location="new_angles"/>
+        <ChangeState service_name="/PointCloudXyzNode/change_state"
+                     label="deactivate"/>
+        <ChangeState service_name="/pose_finder/change_state"
+                     label="deactivate"/>
+        <ChangeState service_name="/find_object_pose/change_state"
+                     label="configure"/>
+        <ManipulatorAction action_name="/clear_octomap_box"
+                           location="estop_set"/>
+      </Sequence>
       <Fallback>
-        <Sequence>
-          <ManipulatorAction action_name="/goto_object_with_manipulator"
-                             location="estop_M"/>
-          <SubTree ID="Object_task"
-                   _autoremap="false"/>
-        </Sequence>
-        <Sequence>
-          <ManipulatorAction action_name="/goto_object_with_manipulator"
-                             location="estop_TR"/>
-          <SubTree ID="Object_task"
-                   _autoremap="false"/>
-        </Sequence>
-        <Sequence>
-          <ManipulatorAction action_name="/goto_object_with_manipulator"
-                             location="estop_BR"/>
-          <SubTree ID="Object_task"
-                   _autoremap="false"/>
-        </Sequence>
+        <ForceFailure>
+          <Sequence>
+            <SetBlackboard value="estop_M"
+                           output_key="object"/>
+            <SubTree ID="Object_task"
+                     _autoremap="false"/>
+          </Sequence>
+        </ForceFailure>
+        <ForceFailure>
+          <Sequence>
+            <SetBlackboard value="estop_TR"
+                           output_key="object"/>
+            <SubTree ID="Object_task"
+                     _autoremap="false"/>
+          </Sequence>
+        </ForceFailure>
+        <ForceFailure>
+          <Sequence>
+            <SetBlackboard value="estop_BR"
+                           output_key="object"/>
+            <SubTree ID="Object_task"
+                     _autoremap="false"/>
+          </Sequence>
+        </ForceFailure>
       </Fallback>
     </Sequence>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->
   <TreeNodesModel>
+    <Action ID="ApplyPlanningScene"
+            editable="true">
+      <input_port name="objects"/>
+      <input_port name="operation"
+                  default="add"/>
+    </Action>
     <Action ID="ChangeState"
             editable="true">
       <input_port name="service_name"/>

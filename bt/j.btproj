@@ -3,6 +3,10 @@
     <include path="untitled_1.xml"/>
     <!-- Description of Node Models (used by Groot) -->
     <TreeNodesModel>
+        <Action ID="ApplyPlanningScene" editable="true">
+            <input_port name="objects"/>
+            <input_port name="operation" default="add"/>
+        </Action>
         <Action ID="ChangeState" editable="true">
             <input_port name="service_name"/>
             <input_port name="label"/>
