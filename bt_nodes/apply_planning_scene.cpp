@@ -41,7 +41,7 @@ public:
         scene_object.header.frame_id = object;
         scene_object.id = object;
         if (operation == "add")
-          scene_object.operation = moveit_msgs::msg::CollisionObject::APPEND;
+          scene_object.operation = moveit_msgs::msg::CollisionObject::ADD;
         else
           scene_object.operation = moveit_msgs::msg::CollisionObject::REMOVE;
 

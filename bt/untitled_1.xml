@@ -43,7 +43,8 @@
                      label="configure"/>
         <ManipulatorAction action_name="/clear_octomap_box"
                            location="estop_set"/>
-        <GetOctomap octomap="{octomap}"/>
+        <GetOctomap service_name="/octomap_full"
+                    octomap="{octomap}"/>
         <ApplyPlanningScene objects=""
                             operation="octomap"
                             octomap="{octomap}"/>
@@ -93,6 +94,7 @@
     </Action>
     <Action ID="GetOctomap"
             editable="true">
+      <input_port name="service_name"/>
       <output_port name="octomap"/>
     </Action>
     <Action ID="ManipulatorAction"

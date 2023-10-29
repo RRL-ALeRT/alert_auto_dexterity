@@ -3,12 +3,22 @@
   <BehaviorTree ID="Untitled">
     <Sequence>
       <RetryUntilSuccessful num_attempts="10">
-        <GetOctomap octomap="{octomap}"/>
+        <ManipulatorAction action_name="/clear_octomap_box"
+                           location="P"/>
+      </RetryUntilSuccessful>
+      <RetryUntilSuccessful num_attempts="10">
+        <GetOctomap service_name="/octomap_full"
+                    octomap="{octomap}"/>
       </RetryUntilSuccessful>
       <RetryUntilSuccessful num_attempts="10">
         <ApplyPlanningScene objects=""
                             operation="octomap"
                             octomap="{octomap}"/>
+      </RetryUntilSuccessful>
+      <RetryUntilSuccessful num_attempts="10">
+        <ApplyPlanningScene objects="P"
+                            operation="add"
+                            octomap=""/>
       </RetryUntilSuccessful>
     </Sequence>
   </BehaviorTree>
@@ -24,7 +34,13 @@
     </Action>
     <Action ID="GetOctomap"
             editable="true">
+      <input_port name="service_name"/>
       <output_port name="octomap"/>
+    </Action>
+    <Action ID="ManipulatorAction"
+            editable="true">
+      <input_port name="action_name">/see_with_manipulator, /goto_object_with_manipulator, /single_object_tast</input_port>
+      <input_port name="location"/>
     </Action>
   </TreeNodesModel>
 

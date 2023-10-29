@@ -14,6 +14,7 @@
             <input_port name="label"/>
         </Action>
         <Action ID="GetOctomap" editable="true">
+            <input_port name="service_name"/>
             <output_port name="octomap"/>
         </Action>
         <Action ID="ManipulatorAction" editable="true">
