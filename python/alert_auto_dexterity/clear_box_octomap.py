@@ -13,13 +13,14 @@ class OctomapClearer(Node):
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
         self.done = False
         self.clear_octomap_service = self.create_client(BoundingBoxQuery, '/octomap_server/clear_bbox')
-        while not self.clear_octomap_service.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting again...')
 
         self.create_timer(0.5, self.clear_octomap_near_object)
 
     def clear_octomap_near_object(self):
         try:
+            while not self.clear_octomap_service.wait_for_service(timeout_sec=1.0):
+                self.get_logger().info('Service not available, waiting again...')
+
             transform = self.tf_buffer.lookup_transform('odom', 'P', rclpy.time.Time())
 
             x = transform.transform.translation.x

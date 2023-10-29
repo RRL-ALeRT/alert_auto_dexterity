@@ -9,7 +9,14 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_lifecycle REQUIRED)
+
 find_package(geometry_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(depth_image_proc REQUIRED)
+find_package(image_geometry REQUIRED)
 
 find_package(behaviortree_ros2 REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -22,6 +29,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES geometry_msgs
 )
 rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
+
+add_executable(depth_to_pointcloud2 cpp/depth_to_pointcloud2.cpp)
+ament_target_dependencies(depth_to_pointcloud2 rclcpp rclcpp_lifecycle lifecycle_msgs image_transport sensor_msgs depth_image_proc image_geometry )
 
 add_library(manipulator_action SHARED bt_nodes/manipulator_action.cpp)
 target_compile_definitions(manipulator_action PRIVATE BT_PLUGIN_EXPORT)
@@ -54,6 +64,7 @@ install(TARGETS
 )
 
 install(TARGETS
+  depth_to_pointcloud2
   execute_tree
   DESTINATION lib/${PROJECT_NAME}
 )

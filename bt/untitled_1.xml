@@ -1,37 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <root BTCPP_format="4"
       main_tree_to_execute="Untitled">
+  <BehaviorTree ID="Object_task">
+    <Sequence>
+      <ChangeState service_name="/find_object_pose/change_state"
+                   label="activate"/>
+      <ManipulatorAction action_name="/single_object_task"
+                         location="estop"/>
+      <ChangeState service_name="/find_object_pose/change_state"
+                   label="deactivate"/>
+    </Sequence>
+  </BehaviorTree>
+
   <BehaviorTree ID="Untitled">
-    <RunOnce then_skip="true">
-      <Sequence>
-        <RunOnce then_skip="true">
-          <Sequence>
-            <ChangeState service_name="/pose_finder/change_state"
-                         label="configure"/>
-            <ChangeState service_name="/pose_finder/change_state"
-                         label="activate"/>
-            <StandInFront location="target"/>
-            <Trigger service_name="/sit"/>
-            <ManipulatorAction action_name="/see_with_manipulator"
-                               location="new_angles"/>
-            <ChangeState service_name="/pose_finder/change_state"
-                         label="deactivate"/>
-            <ChangeState service_name="/find_object_pose/change_state"
-                         label="configure"/>
-          </Sequence>
-        </RunOnce>
+    <Sequence>
+      <RunOnce then_skip="true">
+        <Sequence>
+          <ChangeState service_name="/PointCloudXyzNode/change_state"
+                       label="configure"/>
+          <ChangeState service_name="/PointCloudXyzNode/change_state"
+                       label="activate"/>
+          <ChangeState service_name="/pose_finder/change_state"
+                       label="configure"/>
+          <ChangeState service_name="/pose_finder/change_state"
+                       label="activate"/>
+          <StandInFront location="target"/>
+          <Trigger service_name="/sit"/>
+          <ManipulatorAction action_name="/see_with_manipulator"
+                             location="new_angles"/>
+          <ChangeState service_name="/PointCloudXyzNode/change_state"
+                       label="deactivate"/>
+          <ChangeState service_name="/pose_finder/change_state"
+                       label="deactivate"/>
+          <ChangeState service_name="/find_object_pose/change_state"
+                       label="configure"/>
+        </Sequence>
+      </RunOnce>
+      <Fallback>
         <Sequence>
           <ManipulatorAction action_name="/goto_object_with_manipulator"
                              location="estop_M"/>
-          <ChangeState service_name="/find_object_pose/change_state"
-                       label="activate"/>
-          <ManipulatorAction action_name="/single_object_task"
-                             location="estop"/>
-          <ChangeState service_name="/find_object_pose/change_state"
-                       label="deactivate"/>
+          <SubTree ID="Object_task"
+                   _autoremap="false"/>
         </Sequence>
-      </Sequence>
-    </RunOnce>
+        <Sequence>
+          <ManipulatorAction action_name="/goto_object_with_manipulator"
+                             location="estop_TR"/>
+          <SubTree ID="Object_task"
+                   _autoremap="false"/>
+        </Sequence>
+        <Sequence>
+          <ManipulatorAction action_name="/goto_object_with_manipulator"
+                             location="estop_BR"/>
+          <SubTree ID="Object_task"
+                   _autoremap="false"/>
+        </Sequence>
+      </Fallback>
+    </Sequence>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->

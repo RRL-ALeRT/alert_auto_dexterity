@@ -11,7 +11,7 @@ import numpy as np
 import math
 import threading
 
-from alert_auto_dexterity.action import ManipulatorManipulation
+from alert_auto_dexterity.action import ManipulatorAction
 
 from moveit_ik import MoveitIKClientAsync as IK
 from moveit_action_client import MoveGroupActionClient as Moveit
@@ -65,7 +65,7 @@ class SeeObject(Node):
         self._goal_lock = threading.Lock()
         self._action_server = ActionServer(
             self,
-            ManipulatorManipulation,
+            ManipulatorAction,
             'single_object_task',
             execute_callback=self.execute_callback,
             goal_callback=self.goal_callback,
@@ -110,12 +110,12 @@ class SeeObject(Node):
         while rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().info('Goal canceled')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             if self.position1 is None or self.position2 is None:
                 self.get_tf("base_link", "tool_estop_target_0_1")
@@ -131,7 +131,7 @@ class SeeObject(Node):
             za = self.position1.rotation.z
             wa = self.position1.rotation.w
 
-            feedback_msg = ManipulatorManipulation.Feedback()
+            feedback_msg = ManipulatorAction.Feedback()
             feedback_msg.end_effector_target.translation.x = x
             feedback_msg.end_effector_target.translation.y = y
             feedback_msg.end_effector_target.translation.z = z
@@ -144,7 +144,7 @@ class SeeObject(Node):
             manipulator_actuated = moveit_motion(x, y, z, xa, ya, za, wa)
             if not manipulator_actuated:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             break
 
@@ -152,24 +152,24 @@ class SeeObject(Node):
         while (not gripper.goal_done) and rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().info('Goal canceled')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             rclpy.spin_once(gripper)
 
         while rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().info('Goal canceled')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             x = self.position2.translation.x
             y = self.position2.translation.y
@@ -179,7 +179,7 @@ class SeeObject(Node):
             za = self.position2.rotation.z
             wa = self.position2.rotation.w
 
-            feedback_msg = ManipulatorManipulation.Feedback()
+            feedback_msg = ManipulatorAction.Feedback()
             feedback_msg.end_effector_target.translation.x = x
             feedback_msg.end_effector_target.translation.y = y
             feedback_msg.end_effector_target.translation.z = z
@@ -192,19 +192,19 @@ class SeeObject(Node):
             manipulator_actuated = moveit_motion(x, y, z, xa, ya, za, wa)
             if not manipulator_actuated:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             break
 
         while rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().info('Goal canceled')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             x = self.position1.translation.x
             y = self.position1.translation.y
@@ -214,7 +214,7 @@ class SeeObject(Node):
             za = self.position1.rotation.z
             wa = self.position1.rotation.w
 
-            feedback_msg = ManipulatorManipulation.Feedback()
+            feedback_msg = ManipulatorAction.Feedback()
             feedback_msg.end_effector_target.translation.x = x
             feedback_msg.end_effector_target.translation.y = y
             feedback_msg.end_effector_target.translation.z = z
@@ -227,7 +227,7 @@ class SeeObject(Node):
             manipulator_actuated = moveit_motion(x, y, z, xa, ya, za, wa)
             if not manipulator_actuated:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             break
 
@@ -235,19 +235,19 @@ class SeeObject(Node):
         while (not gripper.goal_done) and rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info('Goal aborted')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
                 self.get_logger().info('Goal canceled')
-                return ManipulatorManipulation.Result()
+                return ManipulatorAction.Result()
 
             rclpy.spin_once(gripper)
 
         goal_handle.succeed()
 
         # Populate result message
-        result = ManipulatorManipulation.Result()
+        result = ManipulatorAction.Result()
 
         return result
 
