@@ -1,4 +1,11 @@
 
+action spot_gait(string gait_mode) {
+mapping:
+	"/locomotion_mode" {
+		gait = gait_mode
+	}
+}
+
 // modes_available: trot, crawl, amble, jog, hop
 action spot_gait(string gait_mode) {
 mapping:
@@ -68,30 +75,29 @@ procedure main() {
     find_estop("configure");
     find_estop_set("deactivate");
 
-    add_collision_boxes();
     go_to_estop_manipulator("estop_M");
 
-    // find_estop("activate");
-    // press_estop();
-    // find_estop("deactivate");
+    find_estop("activate");
+    press_estop();
+    find_estop("deactivate");
 
     // see_with_manipulator("previous_angles");
 
-    // go_to_estop_manipulator("estop_TR");
+    go_to_estop_manipulator("estop_TR");
 
-    // find_estop("activate");
-    // press_estop();
-    // find_estop("deactivate");
-
-    // see_with_manipulator("previous_angles");
-
-    // go_to_estop_manipulator("estop_BR");
-
-    // find_estop("activate");
-    // press_estop();
-    // find_estop("deactivate");
+    find_estop("activate");
+    press_estop();
+    find_estop("deactivate");
 
     // see_with_manipulator("previous_angles");
+
+    go_to_estop_manipulator("estop_BR");
+
+    find_estop("activate");
+    press_estop();
+    find_estop("deactivate");
+
+    see_with_manipulator("previous_angles");
 
     // go_to_estop_manipulator("estop_TL");
 

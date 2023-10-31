@@ -27,8 +27,8 @@ def moveit_motion(x,y,z,qx,qy,qz,qw):
         moveit.send_goal(target_angles)
         while not moveit.goal_done:
             rclpy.spin_once(moveit)
-        return True, target_angles
-    return False, target_angles
+        return target_angles
+    return target_angles
 
 
 def moveit_set_joint_angles(target_angles):
@@ -88,62 +88,10 @@ class SeeObject(Node):
         self.get_logger().info('Executing goal...')
 
         self.position = None
-        while rclpy.ok():
-            if not goal_handle.is_active:
-                self.get_logger().info('Goal aborted')
-                return ManipulatorAction.Result()
-
-            if goal_handle.is_cancel_requested:
-                goal_handle.canceled()
-                self.get_logger().info('Goal canceled')
-                return ManipulatorAction.Result()
-            
-            # Set joint angles to past joint angles if location == "same" in goal_request
-            if self.joint_angles is not None:
-                moveit_set_joint_angles(self.joint_angles)
-                goal_handle.succeed()
-
-                # Populate result message
-                result = ManipulatorAction.Result()
-
-                return result
-                
-            if self.position is None:
-                self.get_tf("base_link", "tool_frame")
-                self.create_rate(1).sleep()
-                continue
-
-            x = self.position.translation.x
-            y = self.position.translation.y
-            z = self.position.translation.z + 0.1
-            xa = self.position.rotation.x
-            ya = self.position.rotation.y
-            za = self.position.rotation.z
-            wa = self.position.rotation.w
-
-            feedback_msg = ManipulatorAction.Feedback()
-            feedback_msg.end_effector_target.translation.x = x
-            feedback_msg.end_effector_target.translation.y = y
-            feedback_msg.end_effector_target.translation.z = z
-            feedback_msg.end_effector_target.rotation.x = xa
-            feedback_msg.end_effector_target.rotation.y = ya
-            feedback_msg.end_effector_target.rotation.z = za
-            feedback_msg.end_effector_target.rotation.w = wa
-            goal_handle.publish_feedback(feedback_msg)
-
-            manipulator_actuated, _ = moveit_motion(x, y, z, xa, ya, za, wa)
-
-            if not manipulator_actuated:
-                self.get_logger().info('Goal aborted')
-                return ManipulatorAction.Result()
-            
-            break
-
-        self.position = None
         self.orientation = None
         self.tf_buffer.clear()
 
-        self.create_rate(1).sleep()
+        self.create_rate(2).sleep()
 
         while rclpy.ok():
             if not goal_handle.is_active:
@@ -158,12 +106,12 @@ class SeeObject(Node):
             while self.position is None or self.orientation is None:
                 self.get_tf("base_link", "tool_frame")
                 self.get_tf("camera_link", "estop_set")
-                self.create_rate(1).sleep()
+                self.create_rate(2).sleep()
                 continue
 
             x = self.position.translation.x
             y = self.position.translation.y
-            z = self.position.translation.z
+            z = self.position.translation.z + 0.05
             xa = self.position.rotation.x
             ya = self.position.rotation.y
             za = self.position.rotation.z
@@ -195,9 +143,9 @@ class SeeObject(Node):
             feedback_msg.end_effector_target.rotation.w = result.w
             goal_handle.publish_feedback(feedback_msg)
 
-            manipulator_actuated, joint_angles = moveit_motion(x, y, z, result.x, result.y, result.z, result.w)
+            joint_angles = moveit_motion(x, y, z, result.x, result.y, result.z, result.w)
 
-            if not manipulator_actuated:
+            if joint_angles is None:
                 self.get_logger().info('Goal aborted')
                 return ManipulatorAction.Result()
 
@@ -206,7 +154,7 @@ class SeeObject(Node):
         self.joint_angles = joint_angles
 
         # Sleep time to detect objects_set again
-        self.create_rate(1).sleep()
+        self.create_rate(2).sleep()
 
         goal_handle.succeed()
 

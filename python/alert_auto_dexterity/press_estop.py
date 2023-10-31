@@ -29,8 +29,8 @@ def moveit_motion(x,y,z,qx,qy,qz,qw):
         moveit.send_goal(target_angles)
         while not moveit.goal_done:
             rclpy.spin_once(moveit)
-        return True
-    return False
+        return target_angles
+    return target_angles
 
 
 def quaternion_from_euler(ai, aj, ak):
@@ -79,7 +79,6 @@ class SeeObject(Node):
     def goal_callback(self, goal_request):
         """Accept or reject a client request to begin an action."""
         self.get_logger().info('Received goal request')
-        self.tf_buffer.clear()
 
         return GoalResponse.ACCEPT
 
@@ -92,6 +91,7 @@ class SeeObject(Node):
                 self._goal_handle.abort()
             self._goal_handle = goal_handle
 
+        self.tf_buffer.clear()
         self.position1 = None
         self.position2 = None
         
@@ -120,7 +120,7 @@ class SeeObject(Node):
             if self.position1 is None or self.position2 is None:
                 self.get_tf("base_link", "tool_estop_target_0_1")
                 self.get_tf("base_link", "tool_estop_target_0_035")
-                self.create_rate(10).sleep()
+                self.create_rate(2).sleep()
                 continue
 
             x = self.position1.translation.x
@@ -141,8 +141,9 @@ class SeeObject(Node):
             feedback_msg.end_effector_target.rotation.w = wa
             goal_handle.publish_feedback(feedback_msg)
 
-            manipulator_actuated = moveit_motion(x, y, z, xa, ya, za, wa)
-            if not manipulator_actuated:
+            joint_angles = moveit_motion(x, y, z, xa, ya, za, wa)
+            if joint_angles is None:
+                gripper.send_goal("open")
                 self.get_logger().info('Goal aborted')
                 return ManipulatorAction.Result()
 
@@ -189,8 +190,9 @@ class SeeObject(Node):
             feedback_msg.end_effector_target.rotation.w = wa
             goal_handle.publish_feedback(feedback_msg)
 
-            manipulator_actuated = moveit_motion(x, y, z, xa, ya, za, wa)
-            if not manipulator_actuated:
+            joint_angles = moveit_motion(x, y, z, xa, ya, za, wa)
+            if joint_angles is None:
+                gripper.send_goal("open")
                 self.get_logger().info('Goal aborted')
                 return ManipulatorAction.Result()
 
@@ -224,8 +226,9 @@ class SeeObject(Node):
             feedback_msg.end_effector_target.rotation.w = wa
             goal_handle.publish_feedback(feedback_msg)
 
-            manipulator_actuated = moveit_motion(x, y, z, xa, ya, za, wa)
-            if not manipulator_actuated:
+            joint_angles = moveit_motion(x, y, z, xa, ya, za, wa)
+            if joint_angles is None:
+                gripper.send_goal("open")
                 self.get_logger().info('Goal aborted')
                 return ManipulatorAction.Result()
 
@@ -266,7 +269,7 @@ class SeeObject(Node):
 
         except Exception as e:
             self.get_logger().warn(f"TF2 lookup failed: {str(e)}")
-            self.create_rate(0.5).sleep()
+            self.create_rate(2).sleep()
 
 
 def main(args=None):

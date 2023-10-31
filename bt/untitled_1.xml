@@ -3,9 +3,6 @@
       main_tree_to_execute="Untitled">
   <BehaviorTree ID="Object_task">
     <Sequence>
-      <ApplyPlanningScene objects="estop_M;estop_TL;estop_TR;estop_BL;estop_BR;"
-                          operation="add"
-                          octomap=""/>
       <ManipulatorAction action_name="/goto_object_with_manipulator"
                          location="{object}"/>
       <ApplyPlanningScene objects="{object}"
@@ -13,37 +10,56 @@
                           octomap=""/>
       <ChangeState service_name="/find_object_pose/change_state"
                    label="activate"/>
-      <ManipulatorAction action_name="/single_object_task"
-                         location="estop"/>
+      <ForceSuccess>
+        <Timeout msec="10000">
+          <ManipulatorAction action_name="/single_object_task"
+                             location="estop"/>
+        </Timeout>
+      </ForceSuccess>
       <ChangeState service_name="/find_object_pose/change_state"
                    label="deactivate"/>
+      <ApplyPlanningScene objects="{object}"
+                          operation="add"
+                          octomap=""/>
+      <Sleep msec="1000"/>
     </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="Untitled">
     <Sequence>
       <Sequence>
-        <ChangeState service_name="/PointCloudXyzNode/change_state"
+        <ChangeState service_name="/kinova/PointCloudXyzNode/change_state"
                      label="configure"/>
-        <ChangeState service_name="/PointCloudXyzNode/change_state"
+        <ChangeState service_name="/kinova/PointCloudXyzNode/change_state"
                      label="activate"/>
         <ChangeState service_name="/pose_finder/change_state"
                      label="configure"/>
         <ChangeState service_name="/pose_finder/change_state"
                      label="activate"/>
         <StandInFront location="target"/>
-        <Trigger service_name="/sit"/>
-        <ManipulatorAction action_name="/see_with_manipulator"
-                           location="new_angles"/>
-        <ChangeState service_name="/PointCloudXyzNode/change_state"
-                     label="deactivate"/>
+        <Repeat num_cycles="4">
+          <Trigger service_name="/sit"/>
+        </Repeat>
+        <Sleep msec="1000"/>
+        <RetryUntilSuccessful num_attempts="5">
+          <ManipulatorAction action_name="/see_with_manipulator"
+                             location=""/>
+        </RetryUntilSuccessful>
         <ChangeState service_name="/pose_finder/change_state"
                      label="deactivate"/>
         <ChangeState service_name="/find_object_pose/change_state"
                      label="configure"/>
-        <ManipulatorAction action_name="/clear_octomap_box"
+        <ChangeState service_name="/kinova/PointCloudXyzNode/change_state"
+                     label="deactivate"/>
+        <Sleep msec="1000"/>
+        <ApplyPlanningScene objects="estop_M;estop_TL;estop_TR;estop_BL;estop_BR;"
+                            operation="add"
+                            octomap=""/>
+        <ManipulatorAction action_name="clear_octomap_box"
                            location="estop_set"/>
-        <GetOctomap service_name="/octomap_full"
+        <ManipulatorAction action_name="clear_octomap_box"
+                           location="rs_front_color_optical_frame"/>
+        <GetOctomap service_name="/kinova/octomap_full"
                     octomap="{octomap}"/>
         <ApplyPlanningScene objects=""
                             operation="octomap"
@@ -52,10 +68,10 @@
       <Fallback>
         <ForceFailure>
           <Sequence>
-            <SetBlackboard value="estop_M"
+            <SetBlackboard value="estop_TL"
                            output_key="object"/>
             <SubTree ID="Object_task"
-                     _autoremap="false"/>
+                     _autoremap="true"/>
           </Sequence>
         </ForceFailure>
         <ForceFailure>
@@ -63,7 +79,15 @@
             <SetBlackboard value="estop_TR"
                            output_key="object"/>
             <SubTree ID="Object_task"
-                     _autoremap="false"/>
+                     _autoremap="true"/>
+          </Sequence>
+        </ForceFailure>
+        <ForceFailure>
+          <Sequence>
+            <SetBlackboard value="estop_BL"
+                           output_key="object"/>
+            <SubTree ID="Object_task"
+                     _autoremap="true"/>
           </Sequence>
         </ForceFailure>
         <ForceFailure>
@@ -71,7 +95,15 @@
             <SetBlackboard value="estop_BR"
                            output_key="object"/>
             <SubTree ID="Object_task"
-                     _autoremap="false"/>
+                     _autoremap="true"/>
+          </Sequence>
+        </ForceFailure>
+        <ForceFailure>
+          <Sequence>
+            <SetBlackboard value="estop_M"
+                           output_key="object"/>
+            <SubTree ID="Object_task"
+                     _autoremap="true"/>
           </Sequence>
         </ForceFailure>
       </Fallback>

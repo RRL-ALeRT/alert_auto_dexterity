@@ -39,7 +39,7 @@ int main(int argc, char **argv)
   params.default_port_value = "/get_octomap";
   RegisterRosNode(factory, bin_directory + "libget_octomap.so", params);
 
-  auto tree = factory.createTreeFromFile(ament_index_cpp::get_package_share_directory("alert_auto_dexterity") + "/bt/untitled_2.xml");
+  auto tree = factory.createTreeFromFile(ament_index_cpp::get_package_share_directory("alert_auto_dexterity") + "/bt/untitled_1.xml");
 
   // Connect the Groot2Publisher. This will allow Groot2 to
   // get the tree and poll status updates.

@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 
+#include <depth_image_proc/depth_traits.hpp>
 #include "depth_image_proc/visibility.h"
 #include "image_geometry/pinhole_camera_model.h"
 
@@ -21,6 +22,58 @@
 #include "rclcpp_lifecycle/lifecycle_publisher.hpp"
 
 namespace enc = sensor_msgs::image_encodings;
+
+// Handles float or uint16 depths
+template<typename T>
+void convertDepth(
+  const sensor_msgs::msg::Image::ConstSharedPtr & depth_msg,
+  sensor_msgs::msg::PointCloud2::SharedPtr & cloud_msg,
+  const image_geometry::PinholeCameraModel & model,
+  double range_max = 0.0)
+{
+  // Use correct principal point from calibration
+  float center_x = model.cx();
+  float center_y = model.cy();
+
+  // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
+  double unit_scaling = depth_image_proc::DepthTraits<T>::toMeters(T(1) );
+  float constant_x = unit_scaling / model.fx();
+  float constant_y = unit_scaling / model.fy();
+  float bad_point = std::numeric_limits<float>::quiet_NaN();
+
+  sensor_msgs::PointCloud2Iterator<float> iter_x(*cloud_msg, "x");
+  sensor_msgs::PointCloud2Iterator<float> iter_y(*cloud_msg, "y");
+  sensor_msgs::PointCloud2Iterator<float> iter_z(*cloud_msg, "z");
+  const T * depth_row = reinterpret_cast<const T *>(&depth_msg->data[0]);
+  int row_step = depth_msg->step / sizeof(T);
+  for (int v = 0; v < static_cast<int>(cloud_msg->height); ++v, depth_row += row_step) {
+    for (int u = 0; u < static_cast<int>(cloud_msg->width); ++u, ++iter_x, ++iter_y, ++iter_z) {
+      T depth = depth_row[u];
+
+      // Missing points denoted by NaNs
+      if (!depth_image_proc::DepthTraits<T>::valid(depth)) {
+        if (range_max != 0.0) {
+          depth = depth_image_proc::DepthTraits<T>::fromMeters(range_max);
+        } else {
+          *iter_x = *iter_y = *iter_z = bad_point;
+          continue;
+        }
+      }
+
+      float MIN_RANGE = 0.3;
+      if (depth_image_proc::DepthTraits<T>::toMeters(depth) < MIN_RANGE)
+      {
+        *iter_x = *iter_y = *iter_z = bad_point;
+        continue;
+      }
+
+      // Fill in XYZ
+      *iter_x = (u - center_x) * depth * constant_x;
+      *iter_y = (v - center_y) * depth * constant_y;
+      *iter_z = depth_image_proc::DepthTraits<T>::toMeters(depth);
+    }
+  }
+}
 
 using PointCloud2 = sensor_msgs::msg::PointCloud2;
 using Image = sensor_msgs::msg::Image;
@@ -121,9 +174,9 @@ public:
 
     // Convert Depth Image to Pointcloud
     if (depth_msg->encoding == enc::TYPE_16UC1) {
-      depth_image_proc::convertDepth<uint16_t>(depth_msg, cloud_msg, model_);
+      convertDepth<uint16_t>(depth_msg, cloud_msg, model_);
     } else if (depth_msg->encoding == enc::TYPE_32FC1) {
-      depth_image_proc::convertDepth<float>(depth_msg, cloud_msg, model_);
+      convertDepth<float>(depth_msg, cloud_msg, model_);
     } else {
       RCLCPP_ERROR(
         get_logger(), "Depth image has unsupported encoding [%s]", depth_msg->encoding.c_str());

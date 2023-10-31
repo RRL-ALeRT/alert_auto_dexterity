@@ -15,7 +15,7 @@ public:
 
   static BT::PortsList providedPorts()
   {
-    return providedBasicPorts({InputPort<unsigned>("location")});
+    return providedBasicPorts({InputPort<std::string>("location")});
   }
 
   bool setGoal(Goal& goal) override
