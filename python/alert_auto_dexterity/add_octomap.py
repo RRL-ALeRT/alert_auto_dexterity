@@ -4,14 +4,19 @@ from moveit_msgs.msg import PlanningScene
 from moveit_msgs.srv import ApplyPlanningScene
 from octomap_msgs.msg import Octomap
 
+
 class MoveIt2PlanningSceneNode(Node):
     def __init__(self):
-        super().__init__('moveit2_planning_scene_node')
-        self.apply_planning_scene_service = self.create_client(ApplyPlanningScene, 'apply_planning_scene')
+        super().__init__("moveit2_planning_scene_node")
+        self.apply_planning_scene_service = self.create_client(
+            ApplyPlanningScene, "apply_planning_scene"
+        )
         while not self.apply_planning_scene_service.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('Service not available, waiting again...')
+            self.get_logger().info("Service not available, waiting again...")
 
-        self.octomap_subscription = self.create_subscription(Octomap, '/octomap_full', self.octomap_callback, 10)
+        self.octomap_subscription = self.create_subscription(
+            Octomap, "/octomap_full", self.octomap_callback, 10
+        )
         self.latest_octomap = None
 
     def octomap_callback(self, msg):
@@ -34,9 +39,10 @@ class MoveIt2PlanningSceneNode(Node):
             rclpy.spin_until_future_complete(self, future)
 
             if future.result() is not None:
-                self.get_logger().info('Planning Scene applied successfully')
+                self.get_logger().info("Planning Scene applied successfully")
             else:
-                self.get_logger().error('Failed to apply Planning Scene')
+                self.get_logger().error("Failed to apply Planning Scene")
+
 
 def main(args=None):
     rclpy.init(args=args)
@@ -46,5 +52,6 @@ def main(args=None):
     planning_scene_node.destroy_node()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

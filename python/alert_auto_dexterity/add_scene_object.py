@@ -6,13 +6,14 @@ from moveit_msgs.srv import ApplyPlanningScene
 from shape_msgs.msg import SolidPrimitive
 from std_msgs.msg import Header
 
-class AddSceneObjectNode(Node):
 
+class AddSceneObjectNode(Node):
     def __init__(self):
-        super().__init__('add_scene_object_node')
-        self.planning_scene_service = self.create_client(ApplyPlanningScene, '/apply_planning_scene')
+        super().__init__("add_scene_object_node")
+        self.planning_scene_service = self.create_client(
+            ApplyPlanningScene, "/apply_planning_scene"
+        )
         # self.wait_for_service(self.planning_scene_service)
-        
 
     def add_scene_object(self):
         scene_object = CollisionObject()
@@ -49,7 +50,9 @@ class AddSceneObjectNode(Node):
         if future.result() is not None:
             self.get_logger().info("Scene object added successfully")
         else:
-            self.get_logger().error(f"Failed to add the scene object: {future.exception()}")
+            self.get_logger().error(
+                f"Failed to add the scene object: {future.exception()}"
+            )
 
 
 def main():
@@ -61,5 +64,5 @@ def main():
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -32,14 +32,17 @@ DEBUG = False
 
 # Relative 3D coordinates of 5 points with the first point as the origin (0,0,0)
 # TL, TR, BL, BR, M
-relative_points = np.array([
-    [-0.059/2,  0.059/2, 0],
-    [ 0.059/2,  0.059/2, 0],
-    [-0.059/2, -0.059/2, 0],
-    [ 0.059/2, -0.059/2, 0]], dtype=np.float32
+relative_points = np.array(
+    [
+        [-0.059 / 2, 0.059 / 2, 0],
+        [0.059 / 2, 0.059 / 2, 0],
+        [-0.059 / 2, -0.059 / 2, 0],
+        [0.059 / 2, -0.059 / 2, 0],
+    ],
+    dtype=np.float32,
 )
 
-IMAGE_TOPIC = '/kinova_color'
+IMAGE_TOPIC = "/kinova_color"
 SCORE_THRESHOLD = 0.8
 BOUNDING_BOX_EDGE_LIMIT = 20
 
@@ -50,9 +53,7 @@ cy = 232.400954
 # Camera intrinsic parameters
 focal_length = (fx, fy)  # Focal length in pixels
 principal_point = (cx, cy)  # Principal point (center of the image) in pixels
-camera_matrix = np.array([[fx, 0, cx],
-                          [0, fy, cy],
-                          [0, 0, 1]], dtype=np.float32)
+camera_matrix = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
 
 k1 = k2 = p1 = p2 = k3 = 0
 # Distortion coefficients (if any)
@@ -80,22 +81,30 @@ class LifecyclePoseNode(LifecycleNode):
         # self.trigger_configure()
 
     def on_configure(self, state: LifecycleState):
-        self.bounding_box_pub = self.create_lifecycle_publisher(BoundingBoxArray, IMAGE_TOPIC + '/bb', 1)
-        self.keypoints_pub = self.create_lifecycle_publisher(KeypointsArray, IMAGE_TOPIC + '/kp', 1)
+        self.bounding_box_pub = self.create_lifecycle_publisher(
+            BoundingBoxArray, IMAGE_TOPIC + "/bb", 1
+        )
+        self.keypoints_pub = self.create_lifecycle_publisher(
+            KeypointsArray, IMAGE_TOPIC + "/kp", 1
+        )
 
         self.t = None
         self.closest_estop = None
-        self.closest_distance = float('inf')
+        self.closest_distance = float("inf")
         self.tf2_publish_timer = self.create_timer(0.1, self.publish_tf2_continuously)
 
-        self.camera_sub = self.create_subscription(Image, IMAGE_TOPIC, self.camera_cb, 1)
+        self.camera_sub = self.create_subscription(
+            Image, IMAGE_TOPIC, self.camera_cb, 1
+        )
 
         # Initialize the transform broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        pose_model_path = os.path.join(get_package_share_directory("alert_auto_dexterity"), "models", "estop.onnx")
+        pose_model_path = os.path.join(
+            get_package_share_directory("alert_auto_dexterity"), "models", "estop.onnx"
+        )
 
         core = ov.Core()
         pose_ov_model = core.read_model(pose_model_path)
@@ -111,11 +120,11 @@ class LifecyclePoseNode(LifecycleNode):
         self.get_logger().info("on_activate() is called.")
         self.t = None
         self.closest_estop = None
-        self.closest_distance = float('inf')
+        self.closest_distance = float("inf")
         self.tf_buffer.clear()
 
         return super().on_activate(state)
-  
+
     def on_deactivate(self, state: LifecycleState):
         self.get_logger().info("on_deactivate() is called.")
 
@@ -127,7 +136,7 @@ class LifecyclePoseNode(LifecycleNode):
         self.destroy_timer(self.tf2_publish_timer)
         self.destroy_subscription(self.camera_sub)
 
-        self.get_logger().info('on_cleanup() is called.')
+        self.get_logger().info("on_cleanup() is called.")
         return TransitionCallbackReturn.SUCCESS
 
     def on_shutdown(self, state: LifecycleState):
@@ -137,7 +146,7 @@ class LifecyclePoseNode(LifecycleNode):
 
         self.destroy_node()
 
-        self.get_logger().info('on_shutdown() is called.')
+        self.get_logger().info("on_shutdown() is called.")
         return TransitionCallbackReturn.SUCCESS
 
     def camera_cb(self, msg):
@@ -146,8 +155,8 @@ class LifecyclePoseNode(LifecycleNode):
 
         if self.t is not None:
             return
-        
-        image = cv_bridge.CvBridge().imgmsg_to_cv2(msg, 'bgr8')
+
+        image = cv_bridge.CvBridge().imgmsg_to_cv2(msg, "bgr8")
 
         input_image = image[:, :, ::-1]
         results = detect(input_image, self.compiled_model, kpt_shape)
@@ -166,7 +175,7 @@ class LifecyclePoseNode(LifecycleNode):
         center_y = image.shape[0] // 2
 
         idx = 0
-        for box, keypoints in zip(detection['box'], detection['kpt']):
+        for box, keypoints in zip(detection["box"], detection["kpt"]):
             for keypoint in keypoints:
                 distance = calculate_distance(keypoint, (center_x, center_y))
                 if distance < self.closest_distance:
@@ -177,8 +186,8 @@ class LifecyclePoseNode(LifecycleNode):
         idx = self.closest_estop
 
         if self.closest_estop is not None:
-            box = detection['box'][idx]
-            keypoints = detection['kpt'][idx]
+            box = detection["box"][idx]
+            keypoints = detection["kpt"][idx]
 
             x1, y1, x2, y2, score, label = box
 
@@ -193,22 +202,33 @@ class LifecyclePoseNode(LifecycleNode):
             u5 = keypoints[4][0]
             v5 = keypoints[4][1]
 
-            image_points = np.array([[u1, v1],
-                                     [u2, v2],
-                                     [u3, v3],
-                                     [u4, v4]], dtype=np.float32)
+            image_points = np.array(
+                [[u1, v1], [u2, v2], [u3, v3], [u4, v4]], dtype=np.float32
+            )
 
             label = int(label)
-            label_name = label_map[label] if label < len(label_map) else 'Unknown'
-            label_str = f'{label_name}: {score:.2f}'  # Create a label string
+            label_name = label_map[label] if label < len(label_map) else "Unknown"
+            label_str = f"{label_name}: {score:.2f}"  # Create a label string
 
             if DEBUG:
-                cv2.rectangle(image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+                cv2.rectangle(
+                    image, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2
+                )
                 # Draw the bounding box label
-                cv2.putText(image, label_str, (int(x1), int(y1) - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 4)
+                cv2.putText(
+                    image,
+                    label_str,
+                    (int(x1), int(y1) - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    1,
+                    (255, 0, 0),
+                    4,
+                )
 
                 for point in image_points:
-                    image = cv2.circle(image, (int(point[0]), int(point[1])), 1, (0,0,255), 5)
+                    image = cv2.circle(
+                        image, (int(point[0]), int(point[1])), 1, (0, 0, 255), 5
+                    )
 
             bb = BoundingBox()
             bb.name = label_map[0] + str(idx)
@@ -230,7 +250,9 @@ class LifecyclePoseNode(LifecycleNode):
 
             # Use solvePnP to estimate camera pose
             # success, rotation_vector, translation_vector, inliers = cv2.solvePnPRansac(relative_points, image_points, camera_matrix, dist_coeffs)
-            success, rotation_vector, translation_vector = cv2.solvePnP(relative_points, image_points, camera_matrix, dist_coeffs)
+            success, rotation_vector, translation_vector = cv2.solvePnP(
+                relative_points, image_points, camera_matrix, dist_coeffs
+            )
 
             # Convert rotation vector to rotation matrix
             rotation_matrix, _ = cv2.Rodrigues(rotation_vector)
@@ -253,7 +275,7 @@ class LifecyclePoseNode(LifecycleNode):
 
         # Read message content and assign it to
         # corresponding tf variables
-        self.t.header.frame_id = 'camera_link'
+        self.t.header.frame_id = "camera_link"
         self.t.child_frame_id = label_map[0]
 
         self.t.transform.translation.x = xyz[0][0]
@@ -272,11 +294,21 @@ class LifecyclePoseNode(LifecycleNode):
 
             tfs = []
 
-            t = combine_tf_transforms(self.t, "tool_estop_target", [0.0, 0.0, 0.0], [0.0, 3.14, 0.0])
+            t = combine_tf_transforms(
+                self.t, "tool_estop_target", [0.0, 0.0, 0.0], [0.0, 3.14, 0.0]
+            )
             tfs.append(t)
 
-            tfs.append(combine_tf_transforms(t, "tool_estop_target_0_1", [0.0, 0.0, -0.1], [ 0.0, 0.0, 0.0]))
-            tfs.append(combine_tf_transforms(t, "tool_estop_target_0_035", [0.0, 0.0, -0.035], [ 0.0, 0.0, 0.0]))
+            tfs.append(
+                combine_tf_transforms(
+                    t, "tool_estop_target_0_1", [0.0, 0.0, -0.1], [0.0, 0.0, 0.0]
+                )
+            )
+            tfs.append(
+                combine_tf_transforms(
+                    t, "tool_estop_target_0_035", [0.0, 0.0, -0.035], [0.0, 0.0, 0.0]
+                )
+            )
 
             self.tf_broadcaster.sendTransform(tfs)
 
@@ -285,7 +317,7 @@ def main():
     rclpy.init()
 
     executor = rclpy.executors.SingleThreadedExecutor()
-    lc_node = LifecyclePoseNode('find_object_pose')
+    lc_node = LifecyclePoseNode("find_object_pose")
     executor.add_node(lc_node)
     try:
         executor.spin()
@@ -293,5 +325,5 @@ def main():
         lc_node.destroy_node()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

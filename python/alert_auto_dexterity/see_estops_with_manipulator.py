@@ -18,10 +18,10 @@ from moveit_action_client import MoveGroupActionClient as Moveit
 from utils import *
 
 
-def moveit_motion(x,y,z,qx,qy,qz,qw):
+def moveit_motion(x, y, z, qx, qy, qz, qw):
     ik = IK()
     moveit = Moveit()
-    target_angles = ik.send_request(x,y,z,qx,qy,qz,qw)
+    target_angles = ik.send_request(x, y, z, qx, qy, qz, qw)
     if target_angles != None:
         ik.destroy_node()
         moveit.send_goal(target_angles)
@@ -40,19 +40,20 @@ def moveit_set_joint_angles(target_angles):
 
 class SeeObject(Node):
     def __init__(self):
-        super().__init__('see_object')
+        super().__init__("see_object")
 
         self._goal_handle = None
         self._goal_lock = threading.Lock()
         self._action_server = ActionServer(
             self,
             ManipulatorAction,
-            'see_with_manipulator',
+            "see_with_manipulator",
             execute_callback=self.execute_callback,
             goal_callback=self.goal_callback,
             handle_accepted_callback=self.handle_accepted_callback,
             cancel_callback=self.cancel_callback,
-            callback_group=ReentrantCallbackGroup())
+            callback_group=ReentrantCallbackGroup(),
+        )
 
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
@@ -61,7 +62,7 @@ class SeeObject(Node):
 
     def goal_callback(self, goal_request):
         """Accept or reject a client request to begin an action."""
-        self.get_logger().info('Received goal request')
+        self.get_logger().info("Received goal request")
         # if goal_request.location != "previous_angles":
         #     self.joint_angles = None
 
@@ -71,7 +72,7 @@ class SeeObject(Node):
         with self._goal_lock:
             # This server only allows one goal at a time
             if self._goal_handle is not None and self._goal_handle.is_active:
-                self.get_logger().info('Aborting previous goal')
+                self.get_logger().info("Aborting previous goal")
                 # Abort the existing goal
                 self._goal_handle.abort()
             self._goal_handle = goal_handle
@@ -80,12 +81,12 @@ class SeeObject(Node):
 
     def cancel_callback(self, goal):
         """Accept or reject a client request to cancel an action."""
-        self.get_logger().info('Received cancel request')
+        self.get_logger().info("Received cancel request")
         return CancelResponse.ACCEPT
 
     def execute_callback(self, goal_handle):
         """Execute the goal."""
-        self.get_logger().info('Executing goal...')
+        self.get_logger().info("Executing goal...")
 
         self.position = None
         self.orientation = None
@@ -95,12 +96,12 @@ class SeeObject(Node):
 
         while rclpy.ok():
             if not goal_handle.is_active:
-                self.get_logger().info('Goal aborted')
+                self.get_logger().info("Goal aborted")
                 return ManipulatorAction.Result()
 
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
-                self.get_logger().info('Goal canceled')
+                self.get_logger().info("Goal canceled")
                 return ManipulatorAction.Result()
 
             while self.position is None or self.orientation is None:
@@ -111,7 +112,7 @@ class SeeObject(Node):
 
             x = self.position.translation.x
             y = self.position.translation.y
-            z = self.position.translation.z + 0.05
+            z = self.position.translation.z + 0.02
             xa = self.position.rotation.x
             ya = self.position.rotation.y
             za = self.position.rotation.z
@@ -131,7 +132,7 @@ class SeeObject(Node):
             # print(quaternion)
             q1 = Quaternion(xa, ya, za, wa)
             q2 = Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3])
-            result = q1 * q2 # Adding them
+            result = q1 * q2  # Adding them
 
             feedback_msg = ManipulatorAction.Feedback()
             feedback_msg.end_effector_target.translation.x = x
@@ -143,10 +144,12 @@ class SeeObject(Node):
             feedback_msg.end_effector_target.rotation.w = result.w
             goal_handle.publish_feedback(feedback_msg)
 
-            joint_angles = moveit_motion(x, y, z, result.x, result.y, result.z, result.w)
+            joint_angles = moveit_motion(
+                x, y, z, result.x, result.y, result.z, result.w
+            )
 
             if joint_angles is None:
-                self.get_logger().info('Goal aborted')
+                self.get_logger().info("Goal aborted")
                 return ManipulatorAction.Result()
 
             break
@@ -163,13 +166,10 @@ class SeeObject(Node):
 
         return result
 
-
     def get_tf(self, header, child):
         try:
             transform = self.tf_buffer.lookup_transform(
-                header,
-                child,
-                rclpy.time.Time()
+                header, child, rclpy.time.Time()
             )
             if header == "base_link":
                 self.position = transform.transform
@@ -189,5 +189,5 @@ def main(args=None):
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

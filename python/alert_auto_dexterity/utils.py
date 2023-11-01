@@ -22,12 +22,20 @@ class Quaternion:
 
     def __mul__(self, other):
         result = Quaternion(0, 0, 0, 1)
-        result.x = self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y
-        result.y = self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x
-        result.z = self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w
-        result.w = self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z
+        result.x = (
+            self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y
+        )
+        result.y = (
+            self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x
+        )
+        result.z = (
+            self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w
+        )
+        result.w = (
+            self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z
+        )
         return result
-    
+
 
 def quaternion_from_euler(ai, aj, ak):
     ai /= 2.0
@@ -39,21 +47,26 @@ def quaternion_from_euler(ai, aj, ak):
     sj = np.sin(aj)
     ck = np.cos(ak)
     sk = np.sin(ak)
-    cc = ci*ck
-    cs = ci*sk
-    sc = si*ck
-    ss = si*sk
+    cc = ci * ck
+    cs = ci * sk
+    sc = si * ck
+    ss = si * sk
 
-    q = np.empty((4, ))
-    q[0] = cj*sc - sj*cs
-    q[1] = cj*ss + sj*cc
-    q[2] = cj*cs - sj*sc
-    q[3] = cj*cc + sj*ss
+    q = np.empty((4,))
+    q[0] = cj * sc - sj * cs
+    q[1] = cj * ss + sj * cc
+    q[2] = cj * cs - sj * sc
+    q[3] = cj * cc + sj * ss
 
     return q
 
 
-def combine_tf_transforms(input_tf2, new_child, old_child_to_new_child_translation, old_child_to_new_child_euler_rotation):
+def combine_tf_transforms(
+    input_tf2,
+    new_child,
+    old_child_to_new_child_translation,
+    old_child_to_new_child_euler_rotation,
+):
     translation = old_child_to_new_child_translation
     euler = old_child_to_new_child_euler_rotation
     quat = quaternion_from_euler(euler[2], euler[1], euler[0])
@@ -86,7 +99,7 @@ def combine_tf_transforms(input_tf2, new_child, old_child_to_new_child_translati
 
 class DynamicBroadcaster(Node):
     def __init__(self):
-        super().__init__('dynamic_broadcaster')
+        super().__init__("dynamic_broadcaster")
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -98,23 +111,39 @@ class DynamicBroadcaster(Node):
     def on_timer(self):
         try:
             t = self.tf_buffer.lookup_transform(
-                "estop_set",
-                "tool_target",
-                rclpy.time.Time())
+                "estop_set", "tool_target", rclpy.time.Time()
+            )
 
             tfs = []
-            tfs.append(combine_tf_transforms(t, "estop_TL", [ 0.13,  0.13, 0.08], [ 0.785, -0.785, 0.0   ]))
-            tfs.append(combine_tf_transforms(t, "estop_TR", [-0.13,  0.13, 0.08], [-0.785,  0.785, 0.0   ]))
-            tfs.append(combine_tf_transforms(t, "estop_BL", [ 0.13, -0.13, 0.08], [ 0.785,  0.0,   -0.785]))
-            tfs.append(combine_tf_transforms(t, "estop_BR", [-0.13, -0.13, 0.08], [-0.785,  0.0,   -0.785]))
-            tfs.append(combine_tf_transforms(t, "estop_M",  [ 0.0,   0.0,  0.0 ], [ 0.785,  0.0,   0.0   ]))
+            tfs.append(
+                combine_tf_transforms(
+                    t, "estop_TL", [0.13, 0.13, 0.08], [0.785, -0.785, 0.0]
+                )
+            )
+            tfs.append(
+                combine_tf_transforms(
+                    t, "estop_TR", [-0.13, 0.13, 0.08], [-0.785, 0.785, 0.0]
+                )
+            )
+            tfs.append(
+                combine_tf_transforms(
+                    t, "estop_BL", [0.13, -0.13, 0.08], [0.785, 0.0, -0.785]
+                )
+            )
+            tfs.append(
+                combine_tf_transforms(
+                    t, "estop_BR", [-0.13, -0.13, 0.08], [-0.785, 0.0, -0.785]
+                )
+            )
+            tfs.append(
+                combine_tf_transforms(t, "estop_M", [0.0, 0.0, 0.0], [0.785, 0.0, 0.0])
+            )
 
             self.tf_broadcaster.sendTransform(tfs)
 
         except TransformException as ex:
-            self.get_logger().info(f'{ex}')
+            self.get_logger().info(f"{ex}")
             return
-
 
 
 def main():
@@ -123,5 +152,5 @@ def main():
     rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

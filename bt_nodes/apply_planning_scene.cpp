@@ -51,7 +51,7 @@ public:
         cube_primitive.type = shape_msgs::msg::SolidPrimitive::BOX;
         cube_primitive.dimensions = {CUBE_SIZE, CUBE_SIZE, CUBE_SIZE}; // (x, y, z)
 
-        float NEGATIVE_OFFSET = 0.05;
+        float NEGATIVE_OFFSET = 0.06;
 
         // Define the pose of the cube
         geometry_msgs::msg::Pose cube_pose;

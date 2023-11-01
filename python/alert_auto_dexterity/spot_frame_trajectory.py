@@ -22,12 +22,12 @@ from rclpy.duration import Duration
 
 class TravelToFrame(Node):
     def __init__(self):
-        super().__init__('spot_trajectory')
+        super().__init__("spot_trajectory")
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        #self.timer = self.create_timer(0.1, self.on_timer)
+        # self.timer = self.create_timer(0.1, self.on_timer)
         self.target_frame = ""
         self.rel_frame = "body"
         self.tf_available = False
@@ -36,13 +36,14 @@ class TravelToFrame(Node):
         self._action_server = ActionServer(
             self,
             TrajectoryToFrame,
-            'trajectory_to_frame',
+            "trajectory_to_frame",
             execute_callback=self.execute_callback,
             callback_group=ReentrantCallbackGroup(),
             goal_callback=self.goal_callback,
-            cancel_callback=self.cancel_callback)
+            cancel_callback=self.cancel_callback,
+        )
 
-        self.trajectory_action_client = ActionClient(self, Trajectory, 'trajectory')
+        self.trajectory_action_client = ActionClient(self, Trajectory, "trajectory")
 
         self.goal_done = False
         self.publish_feedback_once_flag = False
@@ -56,31 +57,37 @@ class TravelToFrame(Node):
 
         self.trajectory_action_client.wait_for_server()
 
-        self.trajectory_future =  self.trajectory_action_client.send_goal_async(goal_msg, feedback_callback=self.trajectory_feedback_callback)
+        self.trajectory_future = self.trajectory_action_client.send_goal_async(
+            goal_msg, feedback_callback=self.trajectory_feedback_callback
+        )
 
         self.trajectory_future.add_done_callback(self.trajectory_goal_response_callback)
 
     def trajectory_goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
-            self.get_logger().info('Goal rejected :(')
+            self.get_logger().info("Goal rejected :(")
             return
 
-        self.get_logger().info('Goal accepted :)')
+        self.get_logger().info("Goal accepted :)")
 
         self.trajectory_get_result_future = goal_handle.get_result_async()
-        self.trajectory_get_result_future.add_done_callback(self.trajectory_get_result_callback)
+        self.trajectory_get_result_future.add_done_callback(
+            self.trajectory_get_result_callback
+        )
 
     def trajectory_get_result_callback(self, future):
         self.goal_done = True
         result = future.result().result
-        self.get_logger().info(f'Trajectory Result: {result.success} - {result.message}')
+        self.get_logger().info(
+            f"Trajectory Result: {result.success} - {result.message}"
+        )
 
     def trajectory_feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
         if self.publish_feedback_once_flag:
             self.publish_feedback_once_flag = False
-            self.get_logger().info(f'Received feedback: {feedback.feedback}')
+            self.get_logger().info(f"Received feedback: {feedback.feedback}")
 
     def destroy(self):
         self._action_server.destroy()
@@ -91,13 +98,13 @@ class TravelToFrame(Node):
         self.publish_feedback_once_flag = True
         """Accept or reject a client request to begin an action."""
         # This server allows multiple goals in parallel
-        self.get_logger().info('Received goal request')
+        self.get_logger().info("Received goal request")
         return GoalResponse.ACCEPT
 
     def cancel_callback(self, goal_handle):
         self.goal_done = True
         """Accept or reject a client request to cancel an action."""
-        self.get_logger().info('Received cancel request')
+        self.get_logger().info("Received cancel request")
         return CancelResponse.ACCEPT
 
     def calc_tf(self):
@@ -105,25 +112,38 @@ class TravelToFrame(Node):
         # compute transformations
         try:
             self.t = self.tf_buffer.lookup_transform(
-                self.rel_frame,
-                self.target_frame,
-                rclpy.time.Time())
+                self.rel_frame, self.target_frame, rclpy.time.Time()
+            )
             self.tf_available = True
         except TransformException as ex:
-            self.get_logger().info(f'{ex}')
+            self.get_logger().info(f"{ex}")
             return
 
     def is_near_target(self):
         # Seems like spot's trajectory server checks for near, only in 2D plane.
         try:
             t = self.tf_buffer.lookup_transform(
-                self.rel_frame,
-                self.target_frame,
-                rclpy.time.Time())
-            yaw = math.atan2(2.0 * (t.transform.rotation.y * t.transform.rotation.w + t.transform.rotation.x * t.transform.rotation.z),
-                             1.0 - 2.0 * (t.transform.rotation.y * t.transform.rotation.y + t.transform.rotation.x * t.transform.rotation.x))
+                self.rel_frame, self.target_frame, rclpy.time.Time()
+            )
+            yaw = math.atan2(
+                2.0
+                * (
+                    t.transform.rotation.y * t.transform.rotation.w
+                    + t.transform.rotation.x * t.transform.rotation.z
+                ),
+                1.0
+                - 2.0
+                * (
+                    t.transform.rotation.y * t.transform.rotation.y
+                    + t.transform.rotation.x * t.transform.rotation.x
+                ),
+            )
 
-            if abs(t.transform.translation.x) < 0.15 and abs(t.transform.translation.y) < 0.15 and abs(yaw) < math.radians(5):
+            if (
+                abs(t.transform.translation.x) < 0.15
+                and abs(t.transform.translation.y) < 0.15
+                and abs(yaw) < math.radians(5)
+            ):
                 return True
             return False
         except TransformException:
@@ -131,13 +151,13 @@ class TravelToFrame(Node):
 
     async def execute_callback(self, goal_handle):
         """Execute a goal."""
-        self.get_logger().info('Executing goal...')
+        self.get_logger().info("Executing goal...")
 
         self.goal_done = False
 
         self.target_frame = goal_handle.request.frame_id
 
-        while(not self.tf_available):
+        while not self.tf_available:
             self.calc_tf()
         self.tf_available = False
 
@@ -162,15 +182,15 @@ class TravelToFrame(Node):
         while not self.goal_done and rclpy.ok():
             if not goal_handle.is_active:
                 self.trajectory_future.result().cancel_goal_async()
-                self.get_logger().info('Goal aborted')
+                self.get_logger().info("Goal aborted")
                 return TrajectoryToFrame.Result()
 
             if goal_handle.is_cancel_requested:
                 self.trajectory_future.result().cancel_goal_async()
                 goal_handle.canceled()
-                self.get_logger().info('Goal canceled')
+                self.get_logger().info("Goal canceled")
                 return TrajectoryToFrame.Result()
-            
+
             goal_handle.publish_feedback(feedback_msg)
             if self.is_near_target():
                 self.trajectory_future.result().cancel_goal_async()
@@ -196,5 +216,6 @@ def main():
     action_server.destroy()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

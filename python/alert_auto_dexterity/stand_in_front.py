@@ -14,47 +14,55 @@ from alert_auto_dexterity.action import StandInFront
 import threading
 import numpy as np
 
+
 class MoveRobot(Node):
     def __init__(self):
-        super().__init__('move_robot')
+        super().__init__("move_robot")
 
         self._goal_handle = None
         self._goal_lock = threading.Lock()
         self._action_server = ActionServer(
             self,
             StandInFront,
-            'stand_in_front',
+            "stand_in_front",
             execute_callback=self.execute_callback,
             goal_callback=self.goal_callback,
             handle_accepted_callback=self.handle_accepted_callback,
             cancel_callback=self.cancel_callback,
-            callback_group=ReentrantCallbackGroup())
-        
+            callback_group=ReentrantCallbackGroup(),
+        )
+
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-        self.cmd_vel_publisher = self.create_publisher(Twist, 'cmd_vel', 1)
+        self.cmd_vel_publisher = self.create_publisher(Twist, "cmd_vel", 1)
 
         # PID control constants
         self.kp_linear = 0.8  # Proportional gain for linear velocity
         self.ki_linear = 0.0  # Integral gain for linear velocity (initially set to 0)
-        self.kd_linear = 0.0003  # Derivative gain for linear velocity (initially set to 0)
+        self.kd_linear = (
+            0.0003  # Derivative gain for linear velocity (initially set to 0)
+        )
 
         self.kp_angular = 1.5  # Proportional gain for angular velocity
-        self.ki_angular = 0.0001  # Integral gain for angular velocity (initially set to 0)
-        self.kd_angular = 0.0003  # Derivative gain for angular velocity (initially set to 0)
+        self.ki_angular = (
+            0.0001  # Integral gain for angular velocity (initially set to 0)
+        )
+        self.kd_angular = (
+            0.0003  # Derivative gain for angular velocity (initially set to 0)
+        )
 
     def goal_callback(self, goal_request):
         self.get_logger().info(f"{goal_request}")
 
         """Accept or reject a client request to begin an action."""
-        self.get_logger().info('Received goal request')
+        self.get_logger().info("Received goal request")
         return GoalResponse.ACCEPT
 
     def handle_accepted_callback(self, goal_handle):
         with self._goal_lock:
             # This server only allows one goal at a time
             if self._goal_handle is not None and self._goal_handle.is_active:
-                self.get_logger().info('Aborting previous goal')
+                self.get_logger().info("Aborting previous goal")
                 # Abort the existing goal
                 self._goal_handle.abort()
             self._goal_handle = goal_handle
@@ -65,7 +73,7 @@ class MoveRobot(Node):
 
         self.prev_error_angular = 0.0
         self.integral_angular = 0.0
-        
+
         self.reach_time = self.get_clock().now().to_msg().sec
 
         self.goal_done = False
@@ -74,22 +82,22 @@ class MoveRobot(Node):
 
     def cancel_callback(self, goal):
         """Accept or reject a client request to cancel an action."""
-        self.get_logger().info('Received cancel request')
+        self.get_logger().info("Received cancel request")
         return CancelResponse.ACCEPT
 
     def execute_callback(self, goal_handle):
         """Execute the goal."""
-        self.get_logger().info('Executing goal...')
+        self.get_logger().info("Executing goal...")
         while not self.goal_done:
             if not goal_handle.is_active:
-                self.get_logger().info('Goal aborted')
+                self.get_logger().info("Goal aborted")
                 return StandInFront.Result()
 
             if goal_handle.is_cancel_requested:
                 goal_handle.canceled()
-                self.get_logger().info('Goal canceled')
+                self.get_logger().info("Goal canceled")
                 return StandInFront.Result()
-            
+
             self.move_robot(goal_handle)
 
         self.create_rate(2).sleep()
@@ -104,9 +112,7 @@ class MoveRobot(Node):
     def move_robot(self, goal_handle):
         try:
             transform = self.tf_buffer.lookup_transform(
-                'body',
-                'spot_target',
-                rclpy.time.Time()
+                "body", "spot_target", rclpy.time.Time()
             )
 
             # Calculate position errors in X and Y
@@ -119,11 +125,11 @@ class MoveRobot(Node):
             cmd_vel_msg.linear.y = self.calculate_pid_linear(error_y)
 
             transform = self.tf_buffer.lookup_transform(
-                'body',
-                'estop_set',
-                rclpy.time.Time()
+                "body", "estop_set", rclpy.time.Time()
             )
-            error_angle = np.arctan2(transform.transform.translation.y, transform.transform.translation.x)
+            error_angle = np.arctan2(
+                transform.transform.translation.y, transform.transform.translation.x
+            )
 
             feedback_msg = StandInFront.Feedback()
             feedback_msg.error_x = error_x
@@ -140,7 +146,7 @@ class MoveRobot(Node):
             cmd_vel_msg.angular.z = max(-0.4, min(cmd_vel_msg.angular.z, 0.4))
 
             # Condition to stop reaching to Spot Target
-            if abs(error_x) < 1.0 and abs(error_y) < 1.0 and abs(error_angle) < 0.2:
+            if abs(error_x) < 1.0 and abs(error_y) < 1.0 and abs(error_angle) < 1.0:
                 if self.get_clock().now().to_msg().sec > self.reach_time:
                     self.goal_done = True
             else:
@@ -193,6 +199,7 @@ class MoveRobot(Node):
 
         return control_signal
 
+
 def main(args=None):
     rclpy.init(args=args)
     node = MoveRobot()
@@ -201,5 +208,6 @@ def main(args=None):
     node.destroy_node()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

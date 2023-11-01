@@ -7,31 +7,31 @@ from moveit_msgs.srv import GetPositionIK
 
 class MoveitIKClientAsync(Node):
     def __init__(self):
-        super().__init__('moveit_ik')
+        super().__init__("moveit_ik")
 
-        self.create_subscription(JointState, '/joint_states', self.joint_states_cb, 1)
+        self.create_subscription(JointState, "/joint_states", self.joint_states_cb, 1)
 
-        self.cli = self.create_client(GetPositionIK, '/compute_ik')
+        self.cli = self.create_client(GetPositionIK, "/compute_ik")
 
         while not self.cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().info('service not available, waiting again...')
+            self.get_logger().info("service not available, waiting again...")
             rclpy.spin_once(self)
 
     def joint_states_cb(self, joint_state):
         self.joint_state = joint_state
 
     def moveit_ik(self, x, y, z, qx, qy, qz, qw):
-        self.req.ik_request.group_name = 'manipulator'
+        self.req.ik_request.group_name = "manipulator"
         self.req.ik_request.robot_state.joint_state = self.joint_state
         self.req.ik_request.avoid_collisions = True
 
         self.req.ik_request.pose_stamped.header.stamp = self.get_clock().now().to_msg()
-        self.req.ik_request.pose_stamped.header.frame_id = 'base_link'
+        self.req.ik_request.pose_stamped.header.frame_id = "base_link"
 
         self.req.ik_request.pose_stamped.pose.position.x = x
         self.req.ik_request.pose_stamped.pose.position.y = y
         self.req.ik_request.pose_stamped.pose.position.z = z
-        
+
         self.req.ik_request.pose_stamped.pose.orientation.x = qx
         self.req.ik_request.pose_stamped.pose.orientation.y = qy
         self.req.ik_request.pose_stamped.pose.orientation.z = qz

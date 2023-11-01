@@ -8,8 +8,10 @@ import time
 
 class GripperActionClient(Node):
     def __init__(self):
-        super().__init__('gripper_execute_python')
-        self._action_client = ActionClient(self, GripperCommand, '/robotiq_gripper_controller/gripper_cmd')
+        super().__init__("gripper_execute_python")
+        self._action_client = ActionClient(
+            self, GripperCommand, "/robotiq_gripper_controller/gripper_cmd"
+        )
 
     def send_goal(self, position):
         if position == "open":
@@ -30,10 +32,10 @@ class GripperActionClient(Node):
     def goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
-            self.get_logger().info('Goal rejected :(')
+            self.get_logger().info("Goal rejected :(")
             return
 
-        self.get_logger().info('Goal accepted :)')
+        self.get_logger().info("Goal accepted :)")
 
         self._get_result_future = goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self.get_result_callback)
