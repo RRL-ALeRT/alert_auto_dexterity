@@ -110,16 +110,14 @@ class LifecyclePoseNode(LifecycleNode):
     def on_activate(self, state: LifecycleState):
         self.get_logger().info("on_activate() is called.")
         self.t = None
+        self.closest_estop = None
+        self.closest_distance = float('inf')
         self.tf_buffer.clear()
 
         return super().on_activate(state)
   
     def on_deactivate(self, state: LifecycleState):
         self.get_logger().info("on_deactivate() is called.")
-        
-        self.t = None
-        self.closest_estop = None
-        self.closest_distance = float('inf')
 
         return super().on_deactivate(state)
 
@@ -278,7 +276,7 @@ class LifecyclePoseNode(LifecycleNode):
             tfs.append(t)
 
             tfs.append(combine_tf_transforms(t, "tool_estop_target_0_1", [0.0, 0.0, -0.1], [ 0.0, 0.0, 0.0]))
-            tfs.append(combine_tf_transforms(t, "tool_estop_target_0_035", [0.0, 0.0, -0.04], [ 0.0, 0.0, 0.0]))
+            tfs.append(combine_tf_transforms(t, "tool_estop_target_0_035", [0.0, 0.0, -0.035], [ 0.0, 0.0, 0.0]))
 
             self.tf_broadcaster.sendTransform(tfs)
 

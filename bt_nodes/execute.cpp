@@ -39,13 +39,22 @@ int main(int argc, char **argv)
   params.default_port_value = "/get_octomap";
   RegisterRosNode(factory, bin_directory + "libget_octomap.so", params);
 
-  auto tree = factory.createTreeFromFile(ament_index_cpp::get_package_share_directory("alert_auto_dexterity") + "/bt/untitled_2.xml");
+  params.default_port_value = "/manipulator_joints";
+  RegisterRosNode(factory, bin_directory + "libmanipulator_joints.so", params);
+
+  params.default_port_value = "/trajectory_to_frame";
+  RegisterRosNode(factory, bin_directory + "libtrajectory_to_frame.so", params);
+
+  factory.registerFromPlugin(bin_directory + "libstore_object_list.so");
+
+  auto tree = factory.createTreeFromFile(ament_index_cpp::get_package_share_directory("alert_auto_dexterity") + "/bt/untitled_1.xml");
 
   // Connect the Groot2Publisher. This will allow Groot2 to
   // get the tree and poll status updates.
   Groot2Publisher publisher(tree);
 
-  tree.tickWhileRunning();
+  for (int i = 0; i < 2; i++)
+    tree.tickWhileRunning();
 
   return 0;
 }

@@ -284,7 +284,9 @@ class LifecyclePoseNode(LifecycleNode):
 
             tfs = [self.t]
 
-            tfs.append(combine_tf_transforms(self.t, "spot_target", [0.25, 0.0, 0.85], [ 0.0, 1.57, -1.57 ]))
+            tfs.append(combine_tf_transforms(self.t, "spot_target",       [ 0.0 , 0.0, 0.75], [0.0, 1.57, -1.57]))
+            tfs.append(combine_tf_transforms(self.t, "spot_target_right", [ 0.25, 0.0, 0.75], [0.0, 1.57, -1.57]))
+            tfs.append(combine_tf_transforms(self.t, "spot_target_left",  [-0.25, 0.0, 0.75], [0.0, 1.57, -1.57]))
 
             t = combine_tf_transforms(self.t, "estop_tool_target", [0.0, 0.0, 0.0], [0.0, 3.14, 0.0])
 

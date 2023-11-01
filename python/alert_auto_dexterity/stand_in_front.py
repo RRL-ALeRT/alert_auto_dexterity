@@ -92,7 +92,7 @@ class MoveRobot(Node):
             
             self.move_robot(goal_handle)
 
-        self.create_rate(1).sleep()
+        self.create_rate(2).sleep()
 
         goal_handle.succeed()
 
@@ -140,7 +140,7 @@ class MoveRobot(Node):
             cmd_vel_msg.angular.z = max(-0.4, min(cmd_vel_msg.angular.z, 0.4))
 
             # Condition to stop reaching to Spot Target
-            if abs(error_x) < 0.2 and abs(error_y) < 0.2 and abs(error_angle) < 0.1:
+            if abs(error_x) < 1.0 and abs(error_y) < 1.0 and abs(error_angle) < 0.2:
                 if self.get_clock().now().to_msg().sec > self.reach_time:
                     self.goal_done = True
             else:

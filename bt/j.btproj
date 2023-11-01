@@ -21,8 +21,20 @@
             <input_port name="action_name">/see_with_manipulator, /goto_object_with_manipulator, /single_object_tast</input_port>
             <input_port name="location"/>
         </Action>
+        <Action ID="ManipulatorJoints" editable="true">
+            <input_port name="joint_angles" default="0.0;0.0;0.0;0.0;0.0;0.0">In degrees</input_port>
+            <input_port name="action_name"/>
+        </Action>
         <Action ID="StandInFront" editable="true">
             <input_port name="location"/>
+        </Action>
+        <Action ID="StoreObjectList" editable="true">
+            <inout_port name="objects_list"/>
+            <input_port name="pop_object"/>
+            <output_port name="objects_loop"/>
+        </Action>
+        <Action ID="TrajectoryToFrame" editable="true">
+            <input_port name="frame"/>
         </Action>
         <Action ID="Trigger" editable="true">
             <input_port name="service_name" default="/sit"/>

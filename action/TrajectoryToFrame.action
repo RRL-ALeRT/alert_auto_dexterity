@@ -1,0 +1,5 @@
+string frame_id
+---
+bool status_near_goal
+---
+int32 status

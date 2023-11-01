@@ -20,8 +20,8 @@ public:
   static BT::PortsList providedPorts()
   {
     return providedBasicPorts({
-      InputPort<unsigned>("objects"),
-      InputPort<unsigned>("operation"),
+      InputPort<std::string>("objects"),
+      InputPort<std::string>("operation"),
       InputPort<std::shared_ptr<octomap_msgs::msg::Octomap>>("octomap")
     });
   }
@@ -34,6 +34,7 @@ public:
     {
       auto objects = getInput<std::string>("objects").value();
       auto object_vec = splitString(objects, ';');
+      float CUBE_SIZE = 0.2;
 
       for (const auto& object: object_vec)
       {
@@ -48,13 +49,15 @@ public:
         // Define the geometry of the cube
         shape_msgs::msg::SolidPrimitive cube_primitive;
         cube_primitive.type = shape_msgs::msg::SolidPrimitive::BOX;
-        cube_primitive.dimensions = {0.2, 0.2, 0.2};  // Cube size (x, y, z)
+        cube_primitive.dimensions = {CUBE_SIZE, CUBE_SIZE, CUBE_SIZE}; // (x, y, z)
+
+        float NEGATIVE_OFFSET = 0.05;
 
         // Define the pose of the cube
         geometry_msgs::msg::Pose cube_pose;
         cube_pose.position.x = 0.0;
         cube_pose.position.y = 0.0;
-        cube_pose.position.z = 0.1;
+        cube_pose.position.z = (CUBE_SIZE / 2) - NEGATIVE_OFFSET;
 
         scene_object.primitives.push_back(cube_primitive);
         scene_object.primitive_poses.push_back(cube_pose);

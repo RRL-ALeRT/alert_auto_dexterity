@@ -2,79 +2,116 @@
 <root BTCPP_format="4"
       main_tree_to_execute="Untitled">
   <BehaviorTree ID="Object_task">
-    <Sequence>
-      <ApplyPlanningScene objects="estop_M;estop_TL;estop_TR;estop_BL;estop_BR;"
-                          operation="add"
-                          octomap=""/>
-      <ManipulatorAction action_name="/goto_object_with_manipulator"
-                         location="{object}"/>
-      <ApplyPlanningScene objects="{object}"
-                          operation="remove"
-                          octomap=""/>
-      <ChangeState service_name="/find_object_pose/change_state"
-                   label="activate"/>
-      <ManipulatorAction action_name="/single_object_task"
-                         location="estop"/>
+    <Fallback>
+      <Sequence>
+        <ManipulatorAction action_name="/goto_object_with_manipulator"
+                           location="{object}"/>
+        <ApplyPlanningScene objects="{object}"
+                            operation="remove"
+                            octomap=""/>
+        <ChangeState service_name="/find_object_pose/change_state"
+                     label="activate"/>
+        <ManipulatorAction action_name="/single_object_task"
+                           location="estop"/>
+        <ApplyPlanningScene objects="{object}"
+                            operation="add"
+                            octomap=""/>
+        <ChangeState service_name="/find_object_pose/change_state"
+                     label="deactivate"/>
+        <StoreObjectList objects_list="{objects}"
+                         pop_object="{object}"
+                         objects_loop=""/>
+        <Sleep msec="1000"/>
+      </Sequence>
       <ChangeState service_name="/find_object_pose/change_state"
                    label="deactivate"/>
-    </Sequence>
+      <ApplyPlanningScene objects="{object}"
+                          operation="add"
+                          octomap=""/>
+      <Sleep msec="1000"/>
+    </Fallback>
   </BehaviorTree>
 
   <BehaviorTree ID="Untitled">
     <Sequence>
+      <RunOnce then_skip="true">
+        <Sequence>
+          <SetBlackboard value="estop_TL;estop_TR;estop_BR;estop_BL;estop_M"
+                         output_key="objects"/>
+          <ChangeState service_name="/kinova/PointCloudXyzNode/change_state"
+                       label="configure"/>
+          <ChangeState service_name="/kinova/PointCloudXyzNode/change_state"
+                       label="activate"/>
+          <ChangeState service_name="/pose_finder/change_state"
+                       label="configure"/>
+          <ChangeState service_name="/pose_finder/change_state"
+                       label="activate"/>
+          <ForceSuccess>
+            <StandInFront location="spot_target"/>
+          </ForceSuccess>
+          <ChangeState service_name="/pose_finder/change_state"
+                       label="deactivate"/>
+          <SetBlackboard value="spot_target_right"
+                         output_key="spot_target"/>
+        </Sequence>
+      </RunOnce>
       <Sequence>
-        <ChangeState service_name="/PointCloudXyzNode/change_state"
-                     label="configure"/>
-        <ChangeState service_name="/PointCloudXyzNode/change_state"
-                     label="activate"/>
-        <ChangeState service_name="/pose_finder/change_state"
-                     label="configure"/>
         <ChangeState service_name="/pose_finder/change_state"
                      label="activate"/>
-        <StandInFront location="target"/>
-        <Trigger service_name="/sit"/>
-        <ManipulatorAction action_name="/see_with_manipulator"
-                           location="new_angles"/>
-        <ChangeState service_name="/PointCloudXyzNode/change_state"
-                     label="deactivate"/>
+        <TrajectoryToFrame frame="{spot_target}"/>
+        <Repeat num_cycles="4">
+          <Trigger service_name="/sit"/>
+        </Repeat>
+        <Sleep msec="1000"/>
+        <RetryUntilSuccessful num_attempts="5">
+          <ManipulatorAction action_name="/see_with_manipulator"
+                             location=""/>
+        </RetryUntilSuccessful>
         <ChangeState service_name="/pose_finder/change_state"
                      label="deactivate"/>
-        <ChangeState service_name="/find_object_pose/change_state"
-                     label="configure"/>
-        <ManipulatorAction action_name="/clear_octomap_box"
-                           location="estop_set"/>
-        <GetOctomap service_name="/octomap_full"
-                    octomap="{octomap}"/>
-        <ApplyPlanningScene objects=""
-                            operation="octomap"
-                            octomap="{octomap}"/>
+        <RunOnce then_skip="true">
+          <Sequence>
+            <ChangeState service_name="/kinova/PointCloudXyzNode/change_state"
+                         label="deactivate"/>
+            <Sleep msec="2000"/>
+            <ApplyPlanningScene objects="{objects}"
+                                operation="add"
+                                octomap=""/>
+            <ManipulatorAction action_name="clear_octomap_box"
+                               location="estop_set"/>
+            <ManipulatorAction action_name="clear_octomap_box"
+                               location="body"/>
+            <GetOctomap service_name="/kinova/octomap_full"
+                        octomap="{octomap}"/>
+            <ApplyPlanningScene objects=""
+                                operation="octomap"
+                                octomap="{octomap}"/>
+          </Sequence>
+        </RunOnce>
       </Sequence>
-      <Fallback>
-        <ForceFailure>
-          <Sequence>
-            <SetBlackboard value="estop_M"
-                           output_key="object"/>
-            <SubTree ID="Object_task"
-                     _autoremap="false"/>
-          </Sequence>
-        </ForceFailure>
-        <ForceFailure>
-          <Sequence>
-            <SetBlackboard value="estop_TR"
-                           output_key="object"/>
-            <SubTree ID="Object_task"
-                     _autoremap="false"/>
-          </Sequence>
-        </ForceFailure>
-        <ForceFailure>
-          <Sequence>
-            <SetBlackboard value="estop_BR"
-                           output_key="object"/>
-            <SubTree ID="Object_task"
-                     _autoremap="false"/>
-          </Sequence>
-        </ForceFailure>
-      </Fallback>
+      <Sequence>
+        <RunOnce then_skip="true">
+          <ChangeState service_name="/find_object_pose/change_state"
+                       label="configure"/>
+        </RunOnce>
+        <StoreObjectList objects_list="{objects}"
+                         pop_object=""
+                         objects_loop="{queue}"/>
+        <LoopString if_empty="SUCCESS"
+                    value="{object}"
+                    queue="{queue}">
+          <SubTree ID="Object_task"
+                   _autoremap="true"/>
+        </LoopString>
+        <ManipulatorJoints name="Retract Manipulator"
+                           joint_angles="0;-106;-148;0;-59.2;90"
+                           action_name="/move_action"/>
+        <Repeat num_cycles="4">
+          <Trigger service_name="/stand"/>
+        </Repeat>
+        <SetBlackboard value="spot_target_left"
+                       output_key="spot_target"/>
+      </Sequence>
     </Sequence>
   </BehaviorTree>
 
@@ -102,9 +139,25 @@
       <input_port name="action_name">/see_with_manipulator, /goto_object_with_manipulator, /single_object_tast</input_port>
       <input_port name="location"/>
     </Action>
+    <Action ID="ManipulatorJoints"
+            editable="true">
+      <input_port name="joint_angles"
+                  default="0.0;0.0;0.0;0.0;0.0;0.0">In degrees</input_port>
+      <input_port name="action_name"/>
+    </Action>
     <Action ID="StandInFront"
             editable="true">
       <input_port name="location"/>
+    </Action>
+    <Action ID="StoreObjectList"
+            editable="true">
+      <inout_port name="objects_list"/>
+      <input_port name="pop_object"/>
+      <output_port name="objects_loop"/>
+    </Action>
+    <Action ID="TrajectoryToFrame"
+            editable="true">
+      <input_port name="frame"/>
     </Action>
     <Action ID="Trigger"
             editable="true">

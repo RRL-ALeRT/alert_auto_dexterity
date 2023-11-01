@@ -19,7 +19,7 @@ class OctomapClearer(Node):
         super().__init__('octomap_clearer')
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
-        self.clear_octomap_service = self.create_client(BoundingBoxQuery, '/octomap_server/clear_bbox')
+        self.clear_octomap_service = self.create_client(BoundingBoxQuery, '/kinova/octomap_server/clear_bbox')
 
         self._goal_handle = None
         self._goal_lock = threading.Lock()
@@ -89,7 +89,7 @@ class OctomapClearer(Node):
             y = transform.transform.translation.y
             z = transform.transform.translation.z
 
-            size = 1.0
+            size = 0.7
 
             min_point = Point()
             min_point.x = x-size/2

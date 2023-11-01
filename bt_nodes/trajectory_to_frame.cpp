@@ -1,27 +1,32 @@
 #include "behaviortree_ros2/plugins.hpp"
 #include "behaviortree_ros2/bt_action_node.hpp"
-#include "alert_auto_dexterity/action/manipulator_action.hpp"
+
+#include <alert_auto_dexterity/action/trajectory_to_frame.hpp>
 
 using namespace BT;
 
-class ManipulatorAction: public RosActionNode<alert_auto_dexterity::action::ManipulatorAction>
+class TrajectoryToFrame: public RosActionNode<alert_auto_dexterity::action::TrajectoryToFrame>
 {
+
 public:
-  ManipulatorAction(const std::string& name,
-                          const NodeConfig& conf,
-                          const RosNodeParams& params)
-    : RosActionNode<alert_auto_dexterity::action::ManipulatorAction>(name, conf, params)
+  TrajectoryToFrame(const std::string& name,
+                    const NodeConfig& conf,
+                    const RosNodeParams& params)
+    : RosActionNode<alert_auto_dexterity::action::TrajectoryToFrame>(name, conf, params)
   {}
 
   static BT::PortsList providedPorts()
   {
-    return providedBasicPorts({InputPort<std::string>("location")});
+    return providedBasicPorts({InputPort<unsigned>("frame")});
   }
 
   bool setGoal(Goal& goal) override
   {
-    auto location = getInput<std::string>("location");
-    goal.location = location.value();
+    std::string frame;
+    getInput("frame", frame);
+
+    goal.frame_id = frame;
+
     return true;
   };
 
@@ -44,4 +49,4 @@ public:
   };
 };
 
-CreateRosNodePlugin(ManipulatorAction, "ManipulatorAction");
+CreateRosNodePlugin(TrajectoryToFrame, "TrajectoryToFrame");

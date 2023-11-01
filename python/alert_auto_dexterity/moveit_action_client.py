@@ -57,7 +57,7 @@ class MoveGroupActionClient(Node):
         motion_plan_request.pipeline_id = 'ompl'
         motion_plan_request.group_name = 'manipulator'
         motion_plan_request.num_planning_attempts = 10
-        motion_plan_request.allowed_planning_time = 5.0
+        motion_plan_request.allowed_planning_time = 10.0
         motion_plan_request.max_velocity_scaling_factor = 0.6
         motion_plan_request.max_acceleration_scaling_factor = 0.6
         motion_plan_request.max_cartesian_speed = 0.0
