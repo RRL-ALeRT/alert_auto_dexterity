@@ -45,7 +45,7 @@ relative_points = np.array(
 )
 
 IMAGE_TOPIC = "/kinova_color"
-SCORE_THRESHOLD = 0.8
+SCORE_THRESHOLD = 0.85
 BOUNDING_BOX_EDGE_LIMIT = 20
 
 fx = 653.68229
@@ -328,12 +328,12 @@ class LifecyclePoseNode(LifecycleNode):
             )
             tfs.append(
                 combine_tf_transforms(
-                    self.t, "spot_target_right", [0.2, 0.0, 0.8], [0.0, 1.57, -1.57]
+                    self.t, "spot_target_right", [0.2, 0.0, 0.84], [0.0, 1.57, -1.57]
                 )
             )
             tfs.append(
                 combine_tf_transforms(
-                    self.t, "spot_target_left", [-0.2, 0.0, 0.8], [0.0, 1.57, -1.57]
+                    self.t, "spot_target_left", [-0.2, 0.0, 0.84], [0.0, 1.57, -1.57]
                 )
             )
 

@@ -94,9 +94,9 @@ class OctomapClearer(Node):
             y = transform.transform.translation.y
             z = transform.transform.translation.z
 
-            size = 0.5
-            if self.location == "body":
-                size = 1.4
+            size = 0.8
+            # if self.location == "rs_front_color_optical_frame":
+                # size = 0.6
 
             min_point = Point()
             min_point.x = x - size / 2

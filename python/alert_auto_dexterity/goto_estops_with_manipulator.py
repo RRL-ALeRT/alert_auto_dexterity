@@ -47,12 +47,14 @@ def moveit_motion(x, y, z, qx, qy, qz, qw):
     ik = IK()
     moveit = Moveit()
     target_angles = ik.send_request(x, y, z, qx, qy, qz, qw)
+    ik.destroy_node()
     if target_angles != None:
-        ik.destroy_node()
         moveit.send_goal(target_angles)
         while not moveit.goal_done:
             rclpy.spin_once(moveit)
+            moveit.destroy_node()
         return True
+    moveit.destroy_node()
     return False
 
 
@@ -105,7 +107,6 @@ class SeeObject(Node):
         self.get_logger().info("Received goal request")
 
         self.location = goal_request.location
-        self.tf_buffer.clear()
 
         return GoalResponse.ACCEPT
 
@@ -129,7 +130,9 @@ class SeeObject(Node):
         """Execute the goal."""
         self.get_logger().info("Executing goal...")
 
+        self.tf_buffer.clear()
         self.position = None
+
         while rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info("Goal aborted")

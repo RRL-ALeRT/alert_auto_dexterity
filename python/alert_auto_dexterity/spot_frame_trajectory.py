@@ -140,9 +140,9 @@ class TravelToFrame(Node):
             )
 
             if (
-                abs(t.transform.translation.x) < 0.15
-                and abs(t.transform.translation.y) < 0.15
-                and abs(yaw) < math.radians(5)
+                abs(t.transform.translation.x) < 0.05
+                and abs(t.transform.translation.y) < 0.05
+                and abs(yaw) < math.radians(4)
             ):
                 return True
             return False

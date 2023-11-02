@@ -22,12 +22,14 @@ def moveit_motion(x, y, z, qx, qy, qz, qw):
     ik = IK()
     moveit = Moveit()
     target_angles = ik.send_request(x, y, z, qx, qy, qz, qw)
+    ik.destroy_node()
     if target_angles != None:
-        ik.destroy_node()
         moveit.send_goal(target_angles)
         while not moveit.goal_done:
             rclpy.spin_once(moveit)
+        moveit.destroy_node()
         return target_angles
+    moveit.destroy_node()
     return target_angles
 
 
