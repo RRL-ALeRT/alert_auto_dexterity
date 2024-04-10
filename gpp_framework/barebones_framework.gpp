@@ -1,0 +1,33 @@
+
+symbol domain estop = {TL, TR, BR, BL, M}
+
+bool fluent pressed(estop x) {
+initially:
+    (TL) = false;(TR) = false;(BR) = false;(BL) = false;(M) = false;
+}
+
+action press_estop(estop x) {
+precondition:
+    !pressed(x)
+effect:
+    pressed(x) = true;
+}
+
+bool function goal() =
+    pressed(TL) & pressed(TR) & pressed(BR) & pressed(BL) & pressed(M)
+
+bool function postcond() = goal()
+
+number function reward() =
+    if (goal())
+        100
+    else
+        -1
+
+procedure main()
+{
+    solve(16, reward())
+        while (!goal())
+            pick (estop x in {TL, TR, BR, BL, M})
+                press_estop(x);
+}

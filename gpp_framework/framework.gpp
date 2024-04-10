@@ -1,0 +1,229 @@
+
+number fluent omni_board_height() {
+initially:
+    () = 0;
+}
+
+action find_omni_board(string transition) {
+mapping:
+    "/pose_finder/change_state" {
+        transition = transition
+    }
+}
+
+number exog_function sense_estop_height(string ros_action_name);
+
+action get_omni_board_height() {
+senses:
+    omni_board_height() = sense_estop_height("/get_omni_board_height");
+mapping:
+    "/get_omni_board_height" {
+        dummy = ""
+    }
+}
+
+action find_estop(string transition) {
+mapping:
+    "/find_object_pose/change_state" {
+        transition = transition
+    }
+}
+
+action reach_estop(number position_number) {
+mapping:
+    "/stand_in_front" {
+        position = position_number
+    }
+}
+
+bool fluent spot_sitting() {
+initially:
+    () = false;
+}
+
+action spot_sit() {
+precondition:
+    omni_board_height() < 0.5
+mapping:
+    "/sit" {
+        dummy = ""
+    }
+effect:
+    spot_sitting() = true;
+}
+
+action spot_stand() {
+precondition:
+    spot_sitting()
+mapping:
+    "/stand" {
+        dummy = ""
+    }
+effect:
+    spot_sitting() = false;
+}
+
+action retract_manipulator() {
+mapping:
+    "/move_action" {
+        position = "retracted"
+    }
+}
+
+action see_with_manipulator(string location) {
+mapping:
+    "/see_with_manipulator" {
+        location = location
+    }
+}
+
+bool fluent reached_estop() {
+initially:
+    () = false;
+}
+
+bool exog_function is_estop_reached(string ros_action_name);
+
+action go_to_estop_manipulator(string location) {
+senses:
+    reached_estop() = is_estop_reached("/goto_estop_with_manipulator");
+mapping:
+    "/goto_estop_with_manipulator" {
+        location = location
+    }
+}
+
+action kinova_octomap(string transition) {
+mapping:
+    "/kinova/PointCloudXyzNode/change_state" {
+        transition = transition
+    }
+}
+
+action amend_collision_box(string estop_names) {
+mapping:
+    "/kinova/PointCloudXyzNode/change_state" {
+        collision_box = transition
+    }
+}
+
+action remove_collision_box(string estop_namea) {
+mapping:
+    "/kinova/PointCloudXyzNode/change_state" {
+        collision_box = transition
+    }
+}
+
+action collision_octomap(string command) {
+mapping:
+    "/kinova/octomap" {
+        command = command
+    }
+}
+
+action sleep(number secs) {
+mapping:
+    "/sleep" {
+        secs = secs
+    }
+}
+
+number fluent attempts() {
+initially:
+    () = 0;
+}
+
+symbol domain estop = {TL, TR, BR, BL, M}
+
+action press_estop(estop x) {
+precondition:
+    !pressed(x)
+mapping:
+    "/press_estop" {
+        location = ""
+    }
+effect:
+    pressed(x) = true;
+}
+
+bool fluent pressed(estop x) {
+initially:
+    (TL) = false;
+    (TR) = false;
+    (BR) = false;
+    (BL) = false;
+    (M) = false;
+}
+
+bool function postcond() = goal()
+
+number function reward() =
+    if (goal())
+        100
+    else
+        -1
+
+procedure press_estop(string estop_name) {
+    reached_estop() = false;
+    go_to_estop_manipulator(estop_name);
+
+    if (reached_estop()) {
+        remove_collision_box(estop_name);
+        find_estop("activate");
+        sleep(3);
+        press_estop();
+        find_estop("deactivate");
+        amend_collision_box(estop_name);
+    }
+}
+
+bool function goal() =
+    attempts() < 2 |
+    (pressed(TL) & pressed(TR) & pressed(BR) & pressed(BL) & pressed(M))
+
+
+procedure main() {
+    // Approach
+
+    find_omni_board("configure");
+    find_estop("configure");
+    kinova_octomap("configure");
+
+    while (!goal()) {
+        attempts() = attempts() + 1;
+
+        collision_octomap("clear");
+
+        kinova_octomap("activate");
+        find_omni_board("activate");
+
+        reach_estop(attempts());
+
+        // Settle
+
+        get_omni_board_height();
+        spot_sit();
+
+        // Execute
+
+        see_with_manipulator();
+
+        sleep(3);
+
+        find_omni_board("deactivate");
+        kinova_octomap("deactivate");
+
+        amend_collision_box("TL TR BR BL M");
+        collision_octomap("add");
+
+        solve(16, reward()) {
+            while (!goal()) {
+                pick (estop x in {TL, TR, BR, BL, M})
+                press_estop(x);
+            }
+        }
+
+        retract_manipulator();
+        spot_stand();
+    }
+}
