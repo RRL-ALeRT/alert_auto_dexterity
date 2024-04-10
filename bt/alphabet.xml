@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Untitled">
+    <Sequence>
+      <Trigger service_name="/stand"/>
+      <SpotDistance distance="0.5"/>
+      <SpotRotate angle="-90"/>
+      <SpotDistance distance="0.5"/>
+      <SpotDistance distance="-0.5"/>
+      <SpotRotate angle="90"/>
+      <SpotDistance distance="0.5"/>
+      <SpotRotate angle="-90"/>
+      <SpotDistance distance="0.5"/>
+      <SpotDistance distance="0.3"/>
+      <SpotDistance distance="0.6"/>
+      <Sequence>
+        <SpotRotate angle="-135"/>
+        <SpotDistance distance="1.1180339887"/>
+        <SpotRotate angle="135"/>
+        <SpotDistance distance="0.6"/>
+      </Sequence>
+      <Trigger service_name="/sit"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="SpotDistance"
+            editable="true">
+      <input_port name="distance"/>
+    </Action>
+    <Action ID="SpotRotate"
+            editable="true">
+      <input_port name="angle"/>
+    </Action>
+    <Action ID="Trigger"
+            editable="true">
+      <input_port name="service_name"
+                  default="/sit"/>
+    </Action>
+  </TreeNodesModel>
+
+</root>

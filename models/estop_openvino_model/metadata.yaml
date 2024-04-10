@@ -1,0 +1,16 @@
+description: Ultralytics YOLOv8n-pose model trained on C:\Users\Makerspace\Documents\Shubham\single_estop_deg_5\dataset\config.yaml
+author: Ultralytics
+license: AGPL-3.0 https://ultralytics.com/license
+date: '2024-02-15T09:56:05.402119'
+version: 8.1.0
+stride: 32
+task: pose
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: estop
+kpt_shape:
+- 5
+- 2

@@ -120,10 +120,13 @@ class SeeObject(Node):
                 self.get_logger().info("Goal canceled")
                 return ManipulatorAction.Result()
 
+            if self.position1 is None:
+                self.position1 = self.get_tf("base_link", "tool_estop_target_0_1")
+            if self.position2 is None:
+                self.position2 = self.get_tf("base_link", "tool_estop_target_0_035")
+
             if self.position1 is None or self.position2 is None:
-                self.get_tf("base_link", "tool_estop_target_0_1")
-                self.get_tf("base_link", "tool_estop_target_0_035")
-                self.create_rate(2).sleep()
+                self.create_rate(0.5).sleep()
                 continue
 
             x = self.position1.translation.x
@@ -262,14 +265,11 @@ class SeeObject(Node):
             transform = self.tf_buffer.lookup_transform(
                 header, child, rclpy.time.Time()
             )
-            if child == "tool_estop_target_0_1":
-                self.position1 = transform.transform
-            else:
-                self.position2 = transform.transform
+            return transform.transform
 
         except Exception as e:
             self.get_logger().warn(f"TF2 lookup failed: {str(e)}")
-            self.create_rate(2).sleep()
+            return None
 
 
 def main(args=None):

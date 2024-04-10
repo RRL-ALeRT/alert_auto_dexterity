@@ -94,7 +94,7 @@ class OctomapClearer(Node):
             y = transform.transform.translation.y
             z = transform.transform.translation.z
 
-            size = 0.8
+            size = 0.7
             # if self.location == "rs_front_color_optical_frame":
                 # size = 0.6
 

@@ -114,7 +114,7 @@ class SeeObject(Node):
 
             x = self.position.translation.x
             y = self.position.translation.y
-            z = self.position.translation.z + 0.02
+            z = self.position.translation.z + 0.01
             xa = self.position.rotation.x
             ya = self.position.rotation.y
             za = self.position.rotation.z
@@ -159,7 +159,7 @@ class SeeObject(Node):
         self.joint_angles = joint_angles
 
         # Sleep time to detect objects_set again
-        self.create_rate(2).sleep()
+        # self.create_rate(2).sleep()
 
         goal_handle.succeed()
 

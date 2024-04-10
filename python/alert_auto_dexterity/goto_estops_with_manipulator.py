@@ -14,6 +14,7 @@ import threading
 from alert_auto_dexterity.action import ManipulatorAction
 
 from moveit_ik import MoveitIKClientAsync as IK
+from moveit_ik import MoveitIKPitch
 from moveit_action_client import MoveGroupActionClient as Moveit
 
 from utils import combine_tf_transforms
@@ -102,6 +103,8 @@ class SeeObject(Node):
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer, self)
 
+        self.pitch = MoveitIKPitch()
+
     def goal_callback(self, goal_request):
         """Accept or reject a client request to begin an action."""
         self.get_logger().info("Received goal request")
@@ -133,6 +136,7 @@ class SeeObject(Node):
         self.tf_buffer.clear()
         self.position = None
 
+        pitched = False
         while rclpy.ok():
             if not goal_handle.is_active:
                 self.get_logger().info("Goal aborted")
@@ -156,6 +160,14 @@ class SeeObject(Node):
             ya = self.position.rotation.y
             za = self.position.rotation.z
             wa = self.position.rotation.w
+
+            if not pitched:
+                self.pitch.send_request(x, y, z, xa, ya, za, wa)
+                # self.pitch.destroy_node()
+                pitched = True
+                self.tf_buffer.clear()
+                self.position = None
+                continue
 
             feedback_msg = ManipulatorAction.Feedback()
             feedback_msg.end_effector_target.translation.x = x

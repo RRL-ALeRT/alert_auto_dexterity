@@ -19,6 +19,8 @@ from spot_msgs.action import Trajectory
 
 from rclpy.duration import Duration
 
+import time
+
 
 class TravelToFrame(Node):
     def __init__(self):
@@ -117,6 +119,7 @@ class TravelToFrame(Node):
             self.tf_available = True
         except TransformException as ex:
             self.get_logger().info(f"{ex}")
+            time.sleep(0.5)
             return
 
     def is_near_target(self):
@@ -175,7 +178,7 @@ class TravelToFrame(Node):
 
         duration = Duration(seconds=10, nanoseconds=0).to_msg()
 
-        self.send_trajectory_goal(pose, duration)
+        self.send_trajectory_goal(pose, duration, True)
 
         # self.get_logger().info(f"{self.trajectory_future.result()}")
 
@@ -193,10 +196,11 @@ class TravelToFrame(Node):
 
             goal_handle.publish_feedback(feedback_msg)
             if self.is_near_target():
-                self.trajectory_future.result().cancel_goal_async()
+                if self.trajectory_future.result() is not None:
+                    self.trajectory_future.result().cancel_goal_async()
                 break
 
-        self.create_rate(1).sleep()
+        # self.create_rate(1).sleep()
         goal_handle.succeed()
         result = TrajectoryToFrame.Result()
 

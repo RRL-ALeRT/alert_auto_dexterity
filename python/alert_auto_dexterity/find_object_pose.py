@@ -43,7 +43,7 @@ relative_points = np.array(
 )
 
 IMAGE_TOPIC = "/kinova_color"
-SCORE_THRESHOLD = 0.8
+SCORE_THRESHOLD = 0.85
 BOUNDING_BOX_EDGE_LIMIT = 20
 
 fx = 653.68229
@@ -118,10 +118,10 @@ class LifecyclePoseNode(LifecycleNode):
 
     def on_activate(self, state: LifecycleState):
         self.get_logger().info("on_activate() is called.")
+        self.tf_buffer.clear()
         self.t = None
         self.closest_estop = None
         self.closest_distance = float("inf")
-        self.tf_buffer.clear()
 
         return super().on_activate(state)
 
@@ -301,7 +301,7 @@ class LifecyclePoseNode(LifecycleNode):
 
             tfs.append(
                 combine_tf_transforms(
-                    t, "tool_estop_target_0_1", [0.0, 0.0, -0.1], [0.0, 0.0, 0.0]
+                    t, "tool_estop_target_0_1", [0.0, 0.0, -0.12], [0.0, 0.0, 0.0]
                 )
             )
             tfs.append(

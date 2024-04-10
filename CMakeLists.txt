@@ -28,6 +28,9 @@ find_package(shape_msgs REQUIRED)
 
 find_package(octomap_msgs REQUIRED)
 
+find_package(tf2 REQUIRED)
+find_package(spot_msgs REQUIRED)
+
 rosidl_generate_interfaces(${PROJECT_NAME}
   "action/StandInFront.action"
   "action/ManipulatorAction.action"
@@ -51,6 +54,8 @@ function(CompileBTNodes name)
     moveit_msgs
     shape_msgs
     octomap_msgs
+    tf2
+    spot_msgs
   )
   target_link_libraries(${name} "${cpp_typesupport_target}")
 endfunction()
@@ -65,6 +70,8 @@ set(bt_nodes
   store_object_list
   manipulator_joints
   trajectory_to_frame
+  spot_distance
+  spot_rotate
 )
 
 foreach(bt_node ${bt_nodes})

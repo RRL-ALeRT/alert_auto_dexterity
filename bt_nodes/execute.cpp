@@ -45,14 +45,22 @@ int main(int argc, char **argv)
   params.default_port_value = "/trajectory_to_frame";
   RegisterRosNode(factory, bin_directory + "libtrajectory_to_frame.so", params);
 
+  params.default_port_value = "/trajectory";
+  RegisterRosNode(factory, bin_directory + "libspot_distance.so", params);
+
+  params.default_port_value = "/trajectory";
+  RegisterRosNode(factory, bin_directory + "libspot_rotate.so", params);
+
   factory.registerFromPlugin(bin_directory + "libstore_object_list.so");
 
   auto tree = factory.createTreeFromFile(ament_index_cpp::get_package_share_directory("alert_auto_dexterity") + "/bt/untitled_1.xml");
+  // auto tree = factory.createTreeFromFile(ament_index_cpp::get_package_share_directory("alert_auto_dexterity") + "/bt/alphabet.xml");
 
   // Connect the Groot2Publisher. This will allow Groot2 to
   // get the tree and poll status updates.
   Groot2Publisher publisher(tree);
 
+  // sleep(5);
   for (int i = 0; i < 2; i++)
     tree.tickWhileRunning();
 

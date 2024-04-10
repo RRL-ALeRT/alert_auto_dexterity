@@ -42,7 +42,8 @@
     <Sequence>
       <RunOnce then_skip="true">
         <Sequence>
-          <SetBlackboard value="estop_TL;estop_TR;estop_BR;estop_BL;estop_M"
+          <!-- <SetBlackboard value="estop_TL;estop_TR;estop_BR;estop_BL;estop_M" -->
+          <SetBlackboard value="estop_BR;estop_BL;estop_M;estop_TL;estop_TR"
                          output_key="objects"/>
           <ChangeState service_name="/kinova/PointCloudXyzNode/change_state"
                        label="configure"/>
@@ -62,7 +63,7 @@
         </Sequence>
       </RunOnce>
       <Sequence>
-        <Sleep msec="1000"/>
+        <Sleep msec="2000"/>
         <TrajectoryToFrame frame="{spot_target}"/>
         <Repeat num_cycles="4">
           <Trigger service_name="/sit"/>

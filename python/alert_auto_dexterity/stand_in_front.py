@@ -37,13 +37,13 @@ class MoveRobot(Node):
         self.cmd_vel_publisher = self.create_publisher(Twist, "cmd_vel", 1)
 
         # PID control constants
-        self.kp_linear = 0.8  # Proportional gain for linear velocity
+        self.kp_linear = 0.4  # Proportional gain for linear velocity
         self.ki_linear = 0.0  # Integral gain for linear velocity (initially set to 0)
         self.kd_linear = (
             0.0003  # Derivative gain for linear velocity (initially set to 0)
         )
 
-        self.kp_angular = 1.5  # Proportional gain for angular velocity
+        self.kp_angular = 0.8  # Proportional gain for angular velocity
         self.ki_angular = (
             0.0001  # Integral gain for angular velocity (initially set to 0)
         )
@@ -141,12 +141,12 @@ class MoveRobot(Node):
             cmd_vel_msg.angular.z = self.calculate_pid_angular(error_angle)
 
             # Set upper and lower limits
-            cmd_vel_msg.linear.x = max(-0.25, min(cmd_vel_msg.linear.x, 0.25))
-            cmd_vel_msg.linear.y = max(-0.25, min(cmd_vel_msg.linear.y, 0.25))
-            cmd_vel_msg.angular.z = max(-0.4, min(cmd_vel_msg.angular.z, 0.4))
+            cmd_vel_msg.linear.x = max(-0.16, min(cmd_vel_msg.linear.x, 0.16))
+            cmd_vel_msg.linear.y = max(-0.16, min(cmd_vel_msg.linear.y, 0.16))
+            cmd_vel_msg.angular.z = max(-0.16, min(cmd_vel_msg.angular.z, 0.16))
 
             # Condition to stop reaching to Spot Target
-            if abs(error_x) < 2.0 and abs(error_y) < 2.0 and abs(error_angle) < 1.0:
+            if abs(error_x) < 1.8 and abs(error_y) < 1.8 and abs(error_angle) < 1.0:
                 if self.get_clock().now().to_msg().sec > self.reach_time:
                     self.goal_done = True
             else:
