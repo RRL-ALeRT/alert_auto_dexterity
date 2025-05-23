@@ -43,5 +43,6 @@ This package demonstrates autonomous navigation and post-navigation actions for 
 ## TODO
 
 - Create a new state for dexterity sequence
+- Test with MBF
 
 
