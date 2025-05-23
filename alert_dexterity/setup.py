@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'auto_approach = alert_dexterity.auto_approach:main',
         ],
     },
 )
