@@ -69,39 +69,8 @@ class MoveToPoseState(State, Node):
                 self.get_logger().error("Timeout waiting for joint states or transform.")
                 return ABORT
 
-        # 1. Collect and store all transforms for the sequence
-        transforms = {}
-        for frame in self.sequence:
-            tf_found = False
-            start_time = time.time()
-            while not tf_found and (time.time() - start_time < 5.0):
-                try:
-                    t = self.tf_buffer.lookup_transform(
-                        "base_link",
-                        frame,
-                        rclpy.time.Time(),
-                        timeout=rclpy.duration.Duration(seconds=0.1),
-                    )
-                    transforms[frame] = [
-                        t.transform.translation.x,
-                        t.transform.translation.y,
-                        t.transform.translation.z,
-                        t.transform.rotation.x,
-                        t.transform.rotation.y,
-                        t.transform.rotation.z,
-                        t.transform.rotation.w,
-                    ]
-                    self.get_logger().info(
-                        f"Stored base_link to {frame} transform: {transforms[frame]}"
-                    )
-                    tf_found = True
-                except TransformException as ex:
-                    rclpy.spin_once(self, timeout_sec=0.1)
-            if not tf_found:
-                self.get_logger().info(f"Could not transform base_link to {frame} after waiting.")
-                transforms[frame] = None
-
         # 2. Compute IK and send trajectories using stored transforms
+        transforms = blackboard["saved_poses"] if "saved_poses" in blackboard else {}
         for frame in self.sequence:
             tf_data = transforms.get(frame)
             if tf_data is None:
@@ -117,7 +86,7 @@ class MoveToPoseState(State, Node):
             req.ik_request.avoid_collisions = True
             req.ik_request.pose_stamped.header.stamp = self.get_clock().now().to_msg()
             req.ik_request.pose_stamped.header.frame_id = "base_link"
-            req.ik_request.pose_stamped.pose.position.x = tf_data[0] - 0.3
+            req.ik_request.pose_stamped.pose.position.x = tf_data[0] - 0.5
             req.ik_request.pose_stamped.pose.position.y = tf_data[1]
             req.ik_request.pose_stamped.pose.position.z = tf_data[2]
             req.ik_request.pose_stamped.pose.orientation.x = tf_data[3]

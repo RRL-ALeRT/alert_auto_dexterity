@@ -34,24 +34,24 @@ class Nav2Dex(ActionState, Node):
         self.get_logger().info("Nav2Dex Node Initialized")
 
         # Declare parameter for goal offset
-        self.declare_parameter("goal_offset_x", -0.8)
+        self.declare_parameter("goal_offset_x", -1.0)
         offset_x = self.get_parameter("goal_offset_x").value
 
         # Wait for transform with timeout
-        timeout = Duration(seconds=5.0)
+        timeout = Duration(seconds=10.0)
         start_time = self.get_clock().now()
         while not self.tf_buffer.can_transform(
-            "base_link", "linear_front", Time(), Duration(seconds=0.05)
+            "odom", "linear_front", Time(), Duration(seconds=0.05)
         ):
             if (self.get_clock().now() - start_time) > timeout:
-                self.get_logger().error("Timed out waiting for transform from linear_front to base_link")
+                self.get_logger().error("Timed out waiting for transform from linear_front to odom")
                 raise RuntimeError("Transform timeout")
-            self.get_logger().info("Waiting for transform from linear_front to base_link...")
+            self.get_logger().info("Waiting for transform from linear_front to odom...")
             rclpy.spin_once(self, timeout_sec=0.1)
 
         try:
             t = self.tf_buffer.lookup_transform(
-                "base_link", "linear_front", Time(), Duration(seconds=0.05)
+                "odom", "linear_front", Time(), Duration(seconds=0.05)
             )
             self.goal_msg = NavigateToPose.Goal()
             self.goal_msg.pose = PoseStamped()
