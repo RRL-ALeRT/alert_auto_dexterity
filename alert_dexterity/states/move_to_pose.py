@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from yasmin import Blackboard, State
 from yasmin_ros import set_ros_loggers
-from yasmin_ros.basic_outcomes import SUCCEED, ABORT
+from yasmin_ros.basic_outcomes import SUCCEED, ABORT, CANCEL
 from sensor_msgs.msg import JointState
 from tf2_ros import TransformException, Buffer, TransformListener
 from moveit_msgs.srv import GetPositionIK
@@ -14,7 +14,7 @@ from rclpy.action import ActionClient
 class MoveToPoseState(State, Node):
     def __init__(self):
         Node.__init__(self, "move_to_pose_state")
-        State.__init__(self, outcomes=[SUCCEED, ABORT])
+        State.__init__(self, outcomes=[SUCCEED, CANCEL, ABORT])  # <-- Add CANCEL here
         set_ros_loggers()
         self.get_logger().info("MoveToPoseState initialized.")
 
@@ -50,7 +50,8 @@ class MoveToPoseState(State, Node):
         while self.joint_state is None or self.tf_base_link_pipe is None:
             try:
                 t = self.tf_buffer.lookup_transform(
-                    "base_link", "linear_front", rclpy.time.Time()
+                    "base_link", "linear_front", rclpy.time.Time(),
+                    timeout=rclpy.duration.Duration(seconds=0.05),
                 )
                 self.tf_base_link_pipe = [
                     t.transform.translation.x,
@@ -71,27 +72,33 @@ class MoveToPoseState(State, Node):
         # 1. Collect and store all transforms for the sequence
         transforms = {}
         for frame in self.sequence:
-            try:
-                t = self.tf_buffer.lookup_transform(
-                    "base_link",
-                    frame,
-                    rclpy.time.Time(),
-                    timeout=rclpy.duration.Duration(seconds=0.05),
-                )
-                transforms[frame] = [
-                    t.transform.translation.x,
-                    t.transform.translation.y,
-                    t.transform.translation.z,
-                    t.transform.rotation.x,
-                    t.transform.rotation.y,
-                    t.transform.rotation.z,
-                    t.transform.rotation.w,
-                ]
-                self.get_logger().info(
-                    f"Stored base_link to {frame} transform: {transforms[frame]}"
-                )
-            except TransformException as ex:
-                self.get_logger().info(f"Could not transform base_link to {frame}: {ex}")
+            tf_found = False
+            start_time = time.time()
+            while not tf_found and (time.time() - start_time < 5.0):
+                try:
+                    t = self.tf_buffer.lookup_transform(
+                        "base_link",
+                        frame,
+                        rclpy.time.Time(),
+                        timeout=rclpy.duration.Duration(seconds=0.1),
+                    )
+                    transforms[frame] = [
+                        t.transform.translation.x,
+                        t.transform.translation.y,
+                        t.transform.translation.z,
+                        t.transform.rotation.x,
+                        t.transform.rotation.y,
+                        t.transform.rotation.z,
+                        t.transform.rotation.w,
+                    ]
+                    self.get_logger().info(
+                        f"Stored base_link to {frame} transform: {transforms[frame]}"
+                    )
+                    tf_found = True
+                except TransformException as ex:
+                    rclpy.spin_once(self, timeout_sec=0.1)
+            if not tf_found:
+                self.get_logger().info(f"Could not transform base_link to {frame} after waiting.")
                 transforms[frame] = None
 
         # 2. Compute IK and send trajectories using stored transforms

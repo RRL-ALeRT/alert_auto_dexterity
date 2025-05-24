@@ -25,7 +25,7 @@ class AutoApproachNode(Node):
         #     Nav2Dex(),
         #     transitions={
         #         SUCCEED: "PRINTING_RESULT",
-        #         CANCEL: "CANCELLED",
+        #         CANCEL: CANCEL,
         #         ABORT: ABORT,
         #     },
         # )
@@ -47,7 +47,7 @@ class AutoApproachNode(Node):
         #     "SITTING_DOWN",
         #     SitDown(),
         #     transitions={
-        #         SUCCEED: "SUCCEED",
+        #         SUCCEED: "WAITING_FOR_SEQUENCE",
         #         ABORT: ABORT,
         #     },
         # )
@@ -55,13 +55,17 @@ class AutoApproachNode(Node):
             "WAITING_FOR_SEQUENCE",
             CbState([SUCCEED], wait_period ),
             transitions={
-                SUCCEED: "MOVE_TO_POSE",
+                SUCCEED: "MOVE_TO_LINEAR_FRONT",
             },
         )
         self.sm.add_state(
-            "MOVE_TO_POSE",
+            "MOVE_TO_LINEAR_FRONT",
             MoveToPoseState(),
-            transitions={SUCCEED: SUCCEED, ABORT: ABORT},
+            transitions={
+                SUCCEED: SUCCEED,
+                CANCEL: CANCEL,
+                ABORT: ABORT,
+            },
         )
 
         YasminViewerPub("YASMIN_ACTION_CLIENT_DEMO", self.sm)
@@ -89,6 +93,10 @@ def main(args=None):
     rclpy.init(args=args)
     node = AutoApproachNode()
     rclpy.spin(node)
+    if rclpy.ok():
+        node.get_logger().info("Shutting down the node...")
+        node.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == "__main__":
     main()
