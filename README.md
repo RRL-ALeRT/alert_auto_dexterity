@@ -16,10 +16,11 @@ This package demonstrates autonomous navigation and post-navigation actions for 
 
 ## Usage
 
-1. **Launch The following in webots**
+1. **Launch The following in webots kinova gen3 branch**
    ```
    ros2 launch webots_spot spot_launch.py
-   ros2 launch webots_spot nav_launch.py set_initial_pose:=true
+   ros2 launch bring_up_alert_nav alert_nav_launch.py #octo_navigation/feature/bring_up
+   ros2 launch webots_spot dexboard_launch.py
    ```
 
 
@@ -42,7 +43,6 @@ This package demonstrates autonomous navigation and post-navigation actions for 
 
 ## TODO
 
-- Create a new state for dexterity sequence
-- Test with MBF
+- Create/fix states for dexterity sequence
 
 
