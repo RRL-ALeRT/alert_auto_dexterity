@@ -5,8 +5,18 @@ import rclpy
 from rclpy.node import Node
 
 import yasmin
-from states.approach import Nav2Dex, SitDown, print_result, wait_period
-from states.move_to_pose import MoveToPoseState
+from states.approach import (
+    Nav2DexLinearFront,
+    SitDown,
+    StandUp,
+    print_result,
+    wait_period,
+)
+from states.move_to_pose import (
+    MoveToPoseState,
+    retract_manipulator,
+    
+)
 from states.align import AlignToMapOrientation
 from states.save_poses import SavePosesState
 from yasmin.blackboard import Blackboard
@@ -22,89 +32,185 @@ class AutoApproachNode(Node):
         set_ros_loggers()
         self.sm = StateMachine(outcomes=[SUCCEED, CANCEL, ABORT])
 
-        # 1. Navigate to the dexterity pose
+        # 1. Navigate to linear front
         self.sm.add_state(
-            "NAVIGATING_TO_POSE",
-            Nav2Dex(),
+            "NAV_TO_LINEAR_FRONT",
+            Nav2DexLinearFront(),
             transitions={
-                SUCCEED: "PRINTING_RESULT",
+                SUCCEED: "PRINT_RESULT_LINEAR",
                 CANCEL: CANCEL,
-                ABORT: ABORT,
+                ABORT: "NAV_TO_LINEAR_FRONT",
             },
         )
-        # 2. Print the result of the navigation
+        # 2. Print result
         self.sm.add_state(
-            "PRINTING_RESULT",
+            "PRINT_RESULT_LINEAR",
             CbState([SUCCEED], print_result),
             transitions={
-                SUCCEED: "WAIT_BEFORE_ALIGN",
+                SUCCEED: "WAIT_BEFORE_SIT_LINEAR",
             },
         )
-        # 3. Wait before aligning to map orientation
+        # 3. Wait before sitting
         self.sm.add_state(
-            "WAIT_BEFORE_ALIGN",
+            "WAIT_BEFORE_SIT_LINEAR",
             CbState([SUCCEED], wait_period),
             transitions={
-                SUCCEED: "ALIGN_TO_MAP_ORIENTATION",
+                SUCCEED: "SIT_DOWN_LINEAR",
             },
         )
-        # 4. Align to map orientation
+        # 4. Sit down at linear
         self.sm.add_state(
-            "ALIGN_TO_MAP_ORIENTATION",
-            AlignToMapOrientation(),
-            transitions={
-                SUCCEED: "WAIT_BEFORE_SIT",
-                CANCEL: CANCEL,
-                ABORT: ABORT,
-            },
-        )
-        # 5. Wait before sitting down
-        self.sm.add_state(
-            "WAIT_BEFORE_SIT",
-            CbState([SUCCEED], wait_period),
-            transitions={
-                SUCCEED: "SITTING_DOWN",
-            },
-        )
-        # 6. Sit down
-        self.sm.add_state(
-            "SITTING_DOWN",
+            "SIT_DOWN_LINEAR",
             SitDown(),
             transitions={
-                SUCCEED: "WAITING_FOR_SEQUENCE",
+                SUCCEED: "WAIT_BEFORE_STAND_UP_LINEAR",
                 ABORT: ABORT,
             },
         )
-        # 7. Wait for a sequence before moving to the linear front
+        # 5. Wait before sequence
+        # self.sm.add_state(
+        #     "WAIT_BEFORE_SEQUENCE_LINEAR",
+        #     CbState([SUCCEED], wait_period),
+        #     transitions={
+        #         SUCCEED: "SAVE_POSES",
+        #     },
+        # )
+        # # 6. Save poses at linear front
+        # self.sm.add_state(
+        #     "SAVE_POSES",
+        #     SavePosesState(),
+        #     transitions={
+        #         SUCCEED: "SEQUENCE_LINEAR",
+        #         CANCEL: CANCEL,
+        #         ABORT: ABORT,
+        #     },
+        # )
+        # # 7. Do sequence at linear
+        # self.sm.add_state(
+        #     "SEQUENCE_LINEAR",
+        #     MoveToPoseState(),  
+        #     transitions={
+        #         SUCCEED: "RETRACT_MANIPULATOR",
+        #         CANCEL: CANCEL,
+        #         ABORT: ABORT,
+        #     },
+        # )
+        # # 8. Retract manipulator
+        # self.sm.add_state(
+        #     "RETRACT_MANIPULATOR",
+        #     CbState([SUCCEED], retract_manipulator),
+        #     transitions={
+        #         SUCCEED: "WAIT_BEFORE_STAND_UP_LINEAR",
+        #     },
+        # )
+        # 9. Wait before standing up
         self.sm.add_state(
-            "WAITING_FOR_SEQUENCE",
-            CbState([SUCCEED], wait_period ),
+            "WAIT_BEFORE_STAND_UP_LINEAR",
+            CbState([SUCCEED], wait_period),
             transitions={
-                SUCCEED: "SAVE_POSES",
+                SUCCEED: "STAND_UP_LINEAR",
             },
         )
-        # 8. Save all required poses
+        # 10. Stand up (implement StandUp state if needed)
         self.sm.add_state(
-            "SAVE_POSES",
-            SavePosesState(),
+            "STAND_UP_LINEAR",
+            StandUp(),
             transitions={
-                SUCCEED: "MOVE_TO_LINEAR_FRONT",
-                CANCEL: CANCEL,
+                SUCCEED: "WAIT_BEFORE_NAV_OMNI",
                 ABORT: ABORT,
             },
         )
-        # 9. Move to the linear front pose
+        # 11. Wait before navigating to omni
         self.sm.add_state(
-            "MOVE_TO_LINEAR_FRONT",
-            MoveToPoseState(),
+            "WAIT_BEFORE_NAV_OMNI",
+            CbState([SUCCEED], wait_period),
             transitions={
                 SUCCEED: SUCCEED,
-                CANCEL: CANCEL,
-                ABORT: ABORT,
             },
         )
+        # # 12. Navigate to omni front
+        # self.sm.add_state(
+        #     "NAV_TO_OMNI_FRONT",
+        #     Nav2DexOmniFront(),
+        #     transitions={
+        #         SUCCEED: "PRINT_RESULT_OMNI",
+        #         CANCEL: CANCEL,
+        #         ABORT: "NAV_TO_OMNI_FRONT",
+        #     },
+        # )
+        # # 13. Print result
+        # self.sm.add_state(
+        #     "PRINT_RESULT_OMNI",
+        #     CbState([SUCCEED], print_result),
+        #     transitions={
+        #         SUCCEED: "WAIT_BEFORE_SEQUENCE_OMNI",
+        #     },
+        # )
+        # # 14. Wait before sequence
+        # self.sm.add_state(
+        #     "WAIT_BEFORE_SEQUENCE_OMNI",
+        #     CbState([SUCCEED], wait_period),
+        #     transitions={
+        #         SUCCEED: "SIT_DOWN_OMNI",
+        #     },
+        # )
+        # # 15. Sit down at omni front
+        # self.sm.add_state(
+        #     "SIT_DOWN_OMNI",
+        #     SitDown(),
+        #     transitions={
+        #         SUCCEED: "SEQUENCE_OMNI",
+        #         ABORT: ABORT,
+        #     },
+        # )
+        # # 16. Do sequence at omni front (replace with your sequence state)
+        # self.sm.add_state(
+        #     "SEQUENCE_OMNI",
+        #     SavePosesState(sequence=['omni_front','top_left','top_right', 'bottom_left', 'bottom_right']),
+        #     transitions={
+        #         SUCCEED: 'MOVE_TO_OMNI_POSE',
+        #         CANCEL: CANCEL,
+        #         ABORT: ABORT,
+        #     },
+        # )
 
-        YasminViewerPub("AUTO_DEX_FSM", self.sm)
+        # # 17. Move to Omni Pose
+        # self.sm.add_state(
+        #     "MOVE_TO_OMNI_POSE",
+        #     MoveToPoseState(sequence=['omni_front','top_left','top_right', 'bottom_left', 'bottom_right']),
+        #     transitions={
+        #         SUCCEED: "RETRACT_MANIPULATOR_OMNI",
+        #         CANCEL: CANCEL,
+        #         ABORT: ABORT,
+        #     },
+        # )
+        # # 18. Retract manipulator at omni
+        # self.sm.add_state(
+        #     "RETRACT_MANIPULATOR_OMNI",
+        #     CbState([SUCCEED], retract_manipulator),
+        #     transitions={
+        #         SUCCEED: "WAIT_BEFORE_STAND_UP_OMNI",
+        #     },
+        # )
+        # # 19. Wait before standing up at omni
+        # self.sm.add_state(
+        #     "WAIT_BEFORE_STAND_UP_OMNI",
+        #     CbState([SUCCEED], wait_period),
+        #     transitions={
+        #         SUCCEED: "STAND_UP_OMNI",
+        #     },
+        # )
+        # 20. Stand up at omni
+        # self.sm.add_state(
+        #     "STAND_UP_OMNI",
+        #     StandUp(),
+        #     transitions={
+        #         SUCCEED: SUCCEED,
+        #         ABORT: ABORT,
+        #     },
+        # )
+
+        # YasminViewerPub("AUTO_DEX_FSM", self.sm) 
         self.blackboard = Blackboard()
 
         # Start the FSM as a timer callback so the node is fully initialized
