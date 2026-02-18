@@ -16,9 +16,9 @@ from yasmin_ros.basic_outcomes import SUCCEED, ABORT, CANCEL
 from yasmin_viewer import YasminViewerPub
 from mbf_msgs.action import MoveBase
 
-class Nav2DexBase(ActionState, Node):
+class MBFDexBase(ActionState, Node):
     def __init__(self, target_frame: str) -> None:
-        Node.__init__(self, f"nav2dex_{target_frame}_node")
+        Node.__init__(self, f"MBFdex_{target_frame}_node")
         ActionState.__init__(
             self,
             MoveBase,
@@ -30,15 +30,14 @@ class Nav2DexBase(ActionState, Node):
         )
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
-        self.get_logger().info(f"Nav2Dex Node Initialized for frame: {target_frame}")
+        self.get_logger().info(f"MBFDex Node Initialized for frame: {target_frame}")
 
         base_frame = "odom"
 
         # parameter for goal offset
-        self.declare_parameter("goal_offset_x", -1.2) # as per rule book (?)
+        self.declare_parameter("goal_offset_x", -0.8) 
         offset_x = self.get_parameter("goal_offset_x").value
 
-        # Wait for transform with timeout
         timeout = Duration(seconds=10.0)
         start_time = self.get_clock().now()
         while not self.tf_buffer.can_transform(
@@ -91,14 +90,14 @@ class Nav2DexBase(ActionState, Node):
             yasmin.YASMIN_LOG_INFO(f"Feedback received: {feedback}")
 
 
-class Nav2DexLinearFront(Nav2DexBase):
+class MBFDexLinearFront(MBFDexBase):
     def __init__(self):
-        super().__init__("dex_board_green")
+        super().__init__("linear_board")
 
 
-class Nav2DexOmniFront(Nav2DexBase):
+class MBFDexOmniFront(MBFDexBase):
     def __init__(self):
-        super().__init__("dex_board_blue")
+        super().__init__("omni_board")
 
 
 class SitDown(ServiceState, Node):
