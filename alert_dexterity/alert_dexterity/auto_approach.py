@@ -196,10 +196,10 @@ class AutoApproachNode(Node):
             },
         )
 
-        try:
-            YasminViewerPub("AUTO_DEX_FSM", self.sm)
-        except Exception as e:
-            yasmin.YASMIN_LOG_WARN(f"YasminViewerPub failed to initialize: {e}")
+        # try:
+        #     YasminViewerPub("AUTO_DEX_FSM", self.sm)
+        # except Exception as e:
+        #     yasmin.YASMIN_LOG_WARN(f"YasminViewerPub failed to initialize: {e}")
         self.blackboard = Blackboard()
 
         # Start the FSM as a timer callback so the node is fully initialized

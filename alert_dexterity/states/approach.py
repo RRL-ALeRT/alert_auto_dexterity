@@ -17,14 +17,14 @@ from yasmin_viewer import YasminViewerPub
 from mbf_msgs.action import MoveBase
 
 class MBFDexBase(ActionState, Node):
-    def __init__(self, target_frame: str) -> None:
+    def __init__(self, target_frame: str, offset_x: float, outcomes=None) -> None:
         Node.__init__(self, f"MBFdex_{target_frame}_node")
         ActionState.__init__(
             self,
             MoveBase,
             "/move_base_flex/move_base",
             self.create_goal_handler,
-            None,
+            outcomes or [SUCCEED, ABORT, CANCEL],  # Default outcomes if not provided
             self.response_handler,
             self.print_feedback,
         )
@@ -35,7 +35,7 @@ class MBFDexBase(ActionState, Node):
         base_frame = "odom"
 
         # parameter for goal offset
-        self.declare_parameter("goal_offset_x", -0.8) 
+        self.declare_parameter("goal_offset_x", offset_x) 
         offset_x = self.get_parameter("goal_offset_x").value
 
         timeout = Duration(seconds=10.0)
@@ -92,12 +92,12 @@ class MBFDexBase(ActionState, Node):
 
 class MBFDexLinearFront(MBFDexBase):
     def __init__(self):
-        super().__init__("linear_board")
+        super().__init__("linear_board", -0.8, outcomes=[SUCCEED, ABORT, CANCEL])
 
 
 class MBFDexOmniFront(MBFDexBase):
     def __init__(self):
-        super().__init__("omni_board")
+        super().__init__("omni_board", -0.5, outcomes=[SUCCEED, ABORT, CANCEL])
 
 
 class SitDown(ServiceState, Node):
