@@ -20,7 +20,7 @@ from yasmin_ros import set_ros_loggers
 from yasmin_ros.basic_outcomes import SUCCEED, ABORT, CANCEL
 
 
-class MoveToPoseState(State, Node):
+class MoveToPoseState(Node, State):
 
     def __init__(self, sequence=None):
         Node.__init__(self, "move_to_pose_state")

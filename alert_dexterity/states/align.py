@@ -11,7 +11,7 @@ from mbf_msgs.action import MoveBase
 from yasmin import Blackboard
 from yasmin_ros.basic_outcomes import SUCCEED, ABORT
 
-class AlignToMapOrientation(ActionState, Node):
+class AlignToMapOrientation(Node, ActionState   ):
     def __init__(self):
         Node.__init__(self, "align_to_map_orientation_node")
         ActionState.__init__(

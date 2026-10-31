@@ -16,7 +16,7 @@ from yasmin_ros.basic_outcomes import SUCCEED, ABORT, CANCEL
 from yasmin_viewer import YasminViewerPub
 from mbf_msgs.action import MoveBase
 
-class MBFDexBase(ActionState, Node):
+class MBFDexBase(Node, ActionState):
     def __init__(self, target_frame: str, offset_x: float, outcomes=None) -> None:
         Node.__init__(self, f"MBFdex_{target_frame}_node")
         ActionState.__init__(
@@ -92,15 +92,15 @@ class MBFDexBase(ActionState, Node):
 
 class MBFDexLinearFront(MBFDexBase):
     def __init__(self):
-        super().__init__("linear_board", -0.8, outcomes=[SUCCEED, ABORT, CANCEL])
+        super().__init__("Linear_Inspect_KRail", -0.8, outcomes=[SUCCEED, ABORT, CANCEL])
 
 
 class MBFDexOmniFront(MBFDexBase):
     def __init__(self):
-        super().__init__("omni_board", -0.5, outcomes=[SUCCEED, ABORT, CANCEL])
+        super().__init__("Omni_Estop_KRail", -0.5, outcomes=[SUCCEED, ABORT, CANCEL])
 
 
-class SitDown(ServiceState, Node):
+class SitDown(Node, ServiceState):
     def __init__(self):
         Node.__init__(self, "sit_down_node")
         ServiceState.__init__(
@@ -130,7 +130,7 @@ class SitDown(ServiceState, Node):
             yasmin.YASMIN_LOG_ERROR("Sit down service failed.")
             return ABORT
 
-class StandUp(ServiceState, Node):
+class StandUp(Node, ServiceState):
     def __init__(self):
         Node.__init__(self, "stand_up_node")
         ServiceState.__init__(

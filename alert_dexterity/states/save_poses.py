@@ -6,7 +6,7 @@ from yasmin_ros import set_ros_loggers
 from yasmin_ros.basic_outcomes import SUCCEED, ABORT, CANCEL
 from tf2_ros import TransformException, Buffer, TransformListener
 
-class SavePosesState(State, Node):
+class SavePosesState(Node, State):
     def __init__(self, sequence=None):
         Node.__init__(self, "save_poses_state")
         State.__init__(self, outcomes=[SUCCEED, CANCEL, ABORT])
